@@ -1,6 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public class Quad
+public class Quad // QUAD：square like stuff
 {
     public Mesh mesh;
 
@@ -9,16 +9,17 @@ public class Quad
         mesh = new Mesh();
         mesh.name = "ScriptedQuad";
 
-        Vector3[] vertices = new Vector3[4];
+        Vector3[] vertices = new Vector3[4]; // four vertex points
         Vector3[] normals = new Vector3[4];
         Vector2[] uvs = new Vector2[4];
-        int[] triangles = new int[] { 3, 1, 0, 3, 2, 1 };
+        int[] triangles = new int[] { 3, 1, 0, 3, 2, 1 }; // two triangles
 
-        Vector2 uv00 = TypeUtility.blockUVs[(int)bType,0];
+        Vector2 uv00 = TypeUtility.blockUVs[(int)bType, 0]; //(int)bType for dirt is 2 -> accordingly in TypeUtility
         Vector2 uv10 = TypeUtility.blockUVs[(int)bType, 1];
         Vector2 uv01 = TypeUtility.blockUVs[(int)bType, 2];
         Vector2 uv11 = TypeUtility.blockUVs[(int)bType, 3];
 
+        // Possible vertices
         Vector3 p0 = new Vector3(-0.5f, -0.5f, 0.5f) + offset;
         Vector3 p1 = new Vector3(0.5f, -0.5f, 0.5f) + offset;
         Vector3 p2 = new Vector3(0.5f, -0.5f, -0.5f) + offset;

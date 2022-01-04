@@ -15,6 +15,7 @@ public class MeshUtility
         for (int i = 0; i < meshes.Length; i++) // Loop through each mesh
         {
             if (meshes[i] == null) continue;
+            // Handle vertices
             for (int j = 0; j < meshes[i].vertices.Length; j++) // Loop through each vertex of the current mesh
             {
                 Vector3 v = meshes[i].vertices[j];
@@ -28,7 +29,7 @@ public class MeshUtility
                     pIndex++;
                 }
             }
-
+            // Handle triangles
             for (int t = 0; t < meshes[i].triangles.Length; t++)
             {
                 int triPoint = meshes[i].triangles[t];

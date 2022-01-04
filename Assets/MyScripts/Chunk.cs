@@ -11,7 +11,7 @@ public class Chunk : MonoBehaviour
     public Material material; 
     public int width, height, depth;
     public Block[,,] blocks;
-    // Flat[x + WIDTH * (y + DEPTH * z)] = Original[x,y,z]
+    // (flatten array) Flat[x + WIDTH * (y + DEPTH * z)] = Original[x,y,z] 
     public TypeUtility.BlockType[] chunkData;
 
     public void BuildChunk()
@@ -20,7 +20,10 @@ public class Chunk : MonoBehaviour
         chunkData = new TypeUtility.BlockType[blockCount];
         for (int i = 0; i < blockCount; i++)
         {
-            chunkData[i] = TypeUtility.BlockType.DIRT;
+            if (UnityEngine.Random.Range(0, 100) < 50)
+                chunkData[i] = TypeUtility.BlockType.DIRT;
+            else
+                chunkData[i] = TypeUtility.BlockType.AIR;
         }
     }
 
@@ -46,7 +49,7 @@ public class Chunk : MonoBehaviour
                 for (int x = 0; x < width; x++)
                 {
                     blocks[x, y, z] = new Block(new Vector3(x, y, z), chunkData[x + width * (y + depth * z)], this);
-                    if (blocks[x,y,z].mesh == null) return;
+                    if (blocks[x,y,z].mesh == null) continue;
                     inputMeshes.Add(blocks[x, y, z].mesh);
                     var vcount = blocks[x, y, z].mesh.vertexCount;
                     var icount = (int)blocks[x, y, z].mesh.GetIndexCount(0);

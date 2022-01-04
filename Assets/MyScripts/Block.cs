@@ -53,9 +53,9 @@ public class Block
         {
             return false;
         }
-        // Glass also
+       
         if (parentChunk.chunkData[x + parentChunk.width * (y + parentChunk.depth * z)] == TypeUtility.BlockType.AIR ||
-            parentChunk.chunkData[x + parentChunk.width * (y + parentChunk.depth * z)] == TypeUtility.BlockType.WATER)
+            parentChunk.chunkData[x + parentChunk.width * (y + parentChunk.depth * z)] == TypeUtility.BlockType.WATER) // Glass also
         {
             return false;
         }
