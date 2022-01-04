@@ -3,7 +3,7 @@ using UnityEngine;
 public static class TypeUtility
 {
     public enum BlockSide { BOTTOM, TOP, LEFT, RIGHT, FRONT, BACK }
-    public enum BlockType { GRASSTOP, GRASSSIDE, DIRT, WATER, STONE, SAND }
+    public enum BlockType { GRASSTOP, GRASSSIDE, DIRT, WATER, STONE, SAND, AIR }
 
     public static Vector2[,] blockUVs =
     {
