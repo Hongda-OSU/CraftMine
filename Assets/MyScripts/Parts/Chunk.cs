@@ -11,8 +11,24 @@ public class Chunk : MonoBehaviour
     public Material material; 
     public int width, height, depth;
     public Block[,,] blocks;
+
     // (flatten array) Flat[x + WIDTH * (y + DEPTH * z)] = Original[x,y,z] 
+    // x = i % WIDTH
+    // y = (i / WIDTH) % HEIGHT
+    // z = i / (WIDTH * HEIGHT)
     public TypeUtility.BlockType[] chunkData;
+
+    [Header("Perlin Setting")] 
+    public float heightScale; // 10f
+    public float scale; // 0.001f
+    public float heightOffset; // -33f
+    public int octaves; // 8
+    public Vector3 location;
+
+    void Start()
+    {
+
+    }
 
     public void BuildChunk()
     {
@@ -20,15 +36,23 @@ public class Chunk : MonoBehaviour
         chunkData = new TypeUtility.BlockType[blockCount];
         for (int i = 0; i < blockCount; i++)
         {
-            if (UnityEngine.Random.Range(0, 100) < 50)
+            int x = i % width + (int)location.x;
+            int y = (i / width) % height + (int)location.y;
+            int z = i / (width * height) + (int)location.z;
+            if (NoiseUtility.FBM(x, z, octaves, scale, heightScale, heightOffset) > y) // using perline noise
                 chunkData[i] = TypeUtility.BlockType.DIRT;
             else
                 chunkData[i] = TypeUtility.BlockType.AIR;
         }
     }
 
-    void Start()
+    public void CreateChunk(Vector3 dimension, Vector3 position)
     {
+        location = position;
+        width = (int) dimension.x;
+        height = (int) dimension.y;
+        depth = (int) dimension.z;
+
         MeshFilter mf = this.gameObject.AddComponent<MeshFilter>();
         MeshRenderer mr = this.gameObject.AddComponent<MeshRenderer>();
         mr.material = material;
@@ -48,7 +72,7 @@ public class Chunk : MonoBehaviour
             {
                 for (int x = 0; x < width; x++)
                 {
-                    blocks[x, y, z] = new Block(new Vector3(x, y, z), chunkData[x + width * (y + depth * z)], this);
+                    blocks[x, y, z] = new Block(new Vector3(x, y, z) + location, chunkData[x + width * (y + depth * z)], this);
                     if (blocks[x,y,z].mesh == null) continue;
                     inputMeshes.Add(blocks[x, y, z].mesh);
                     var vcount = blocks[x, y, z].mesh.vertexCount;
@@ -73,7 +97,7 @@ public class Chunk : MonoBehaviour
 
         var handle = jobs.Schedule(inputMeshes.Count, 4);
         var newMesh = new Mesh();
-        newMesh.name = "Chunk";
+        newMesh.name = "Chunk_" + location.x + "_" + location.y + "_" + location.z; 
         var subMesh = new SubMeshDescriptor(0, triStart, MeshTopology.Triangles);
         subMesh.firstVertex = 0;
         subMesh.vertexCount = vertexStart;

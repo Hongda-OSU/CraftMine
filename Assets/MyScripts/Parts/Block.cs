@@ -9,26 +9,27 @@ public class Block
     public Block(Vector3 position, TypeUtility.BlockType bType, Chunk chunk)
     {
         parentChunk = chunk;
+        Vector3 blockLocalPos = position - chunk.location;
         
         if(bType == TypeUtility.BlockType.AIR) return;
 
         List<Quad> quads = new List<Quad>();
-        if (!hasSolidNeighbor((int) position.x, (int) position.y - 1, (int) position.z))
+        if (!hasSolidNeighbor((int)blockLocalPos.x, (int)blockLocalPos.y - 1, (int)blockLocalPos.z))
             quads.Add(new Quad(TypeUtility.BlockSide.BOTTOM, position, bType));
         
-        if (!hasSolidNeighbor((int) position.x, (int) position.y + 1, (int) position.z))
+        if (!hasSolidNeighbor((int)blockLocalPos.x, (int)blockLocalPos.y + 1, (int)blockLocalPos.z))
             quads.Add(new Quad(TypeUtility.BlockSide.TOP, position, bType));
         
-        if (!hasSolidNeighbor((int) position.x - 1, (int) position.y, (int) position.z))
+        if (!hasSolidNeighbor((int)blockLocalPos.x - 1, (int)blockLocalPos.y, (int)blockLocalPos.z))
             quads.Add(new Quad(TypeUtility.BlockSide.LEFT, position, bType));
         
-        if (!hasSolidNeighbor((int)position.x + 1, (int)position.y, (int)position.z))
+        if (!hasSolidNeighbor((int)blockLocalPos.x + 1, (int)blockLocalPos.y, (int)blockLocalPos.z))
             quads.Add(new Quad(TypeUtility.BlockSide.RIGHT, position, bType));
 
-        if (!hasSolidNeighbor((int) position.x, (int) position.y, (int) position.z + 1))
+        if (!hasSolidNeighbor((int)blockLocalPos.x, (int)blockLocalPos.y, (int)blockLocalPos.z + 1))
             quads.Add(new Quad(TypeUtility.BlockSide.FRONT, position, bType));
 
-        if (!hasSolidNeighbor((int)position.x, (int)position.y, (int)position.z - 1))
+        if (!hasSolidNeighbor((int)blockLocalPos.x, (int)blockLocalPos.y, (int)blockLocalPos.z - 1))
             quads.Add(new Quad(TypeUtility.BlockSide.BACK, position, bType));
 
         if(quads.Count == 0) return;
