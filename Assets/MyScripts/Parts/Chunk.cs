@@ -39,7 +39,7 @@ public class Chunk : MonoBehaviour
             int x = i % width + (int)location.x;
             int y = (i / width) % height + (int)location.y;
             int z = i / (width * height) + (int)location.z;
-            if (NoiseUtility.FBM(x, z, octaves, scale, heightScale, heightOffset) > y) // using perline noise
+            if (NoiseUtility.FBM(x, z, octaves, scale, heightScale, heightOffset) > y) // using perline noise, lower offset -> more blocks in a chunk
                 chunkData[i] = TypeUtility.BlockType.DIRT;
             else
                 chunkData[i] = TypeUtility.BlockType.AIR;
@@ -114,6 +114,8 @@ public class Chunk : MonoBehaviour
         newMesh.RecalculateBounds();
 
         mf.mesh = newMesh;
+        MeshCollider collider = this.gameObject.AddComponent<MeshCollider>();
+        collider.sharedMesh = mf.mesh;
     }
 
     [BurstCompile]
@@ -178,6 +180,8 @@ public class Chunk : MonoBehaviour
             }
         }
     }
+
+
 
     void Update()
     {

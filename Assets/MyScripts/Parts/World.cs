@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class World : MonoBehaviour
@@ -8,6 +9,11 @@ public class World : MonoBehaviour
 
     void Start()
     {
+        StartCoroutine(BuildWorld());
+    }
+
+    IEnumerator BuildWorld()
+    {
         for (int z = 0; z < worldDimensions.z; z++)
         {
             for (int y = 0; y < worldDimensions.y; y++)
@@ -17,6 +23,7 @@ public class World : MonoBehaviour
                     GameObject chunk = Instantiate(chunkPrefab);
                     Vector3 position = new Vector3(x * chunkDimensions.x, y * chunkDimensions.y, z * chunkDimensions.z);
                     chunk.GetComponent<Chunk>().CreateChunk(chunkDimensions, position);
+                    yield return null;
                 }
             }
         }
