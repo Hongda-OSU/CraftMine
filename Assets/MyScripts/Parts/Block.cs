@@ -64,7 +64,7 @@ public class Block
         }
 
         mesh = MeshUtility.MergeMeshes(sideMeshes);
-        mesh.name = "Cube_0_0_0";
+        mesh.name = "Cube_" + position.x + "_" + position.y + "_" + position.z;
     }
 
     public bool hasSolidNeighbor(int x, int y, int z)

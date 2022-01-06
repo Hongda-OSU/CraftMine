@@ -18,6 +18,7 @@ public class Chunk : MonoBehaviour
     // z = i / (WIDTH * HEIGHT)
     public TypeUtility.BlockType[] chunkData;
     public Vector3 location;
+    public MeshRenderer meshRender;
 
     public void BuildChunk()
     {
@@ -91,6 +92,7 @@ public class Chunk : MonoBehaviour
 
         MeshFilter mf = this.gameObject.AddComponent<MeshFilter>();
         MeshRenderer mr = this.gameObject.AddComponent<MeshRenderer>();
+        meshRender = mr;
         mr.material = material;
         blocks = new Block[width, height, depth];
         BuildChunk();

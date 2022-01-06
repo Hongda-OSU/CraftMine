@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3417423438565793383}
   - component: {fileID: 3417423438565793382}
   m_Layer: 0
-  m_Name: Perlin3D
+  m_Name: Sample
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -48,4 +48,4 @@ MonoBehaviour:
   heightOffset: 1.25
   octaves: 3
   scale: 0.04
-  DrawCutOff: 3
+  DrawCutOff: 4
