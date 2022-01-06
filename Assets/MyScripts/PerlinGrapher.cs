@@ -3,8 +3,15 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class PerlinGrapher : MonoBehaviour  // Perlin noise displayer
 { 
-    private LineRenderer lr;
-    public float heightScale, heightOffset, scale; 
+    public LineRenderer lr;
+    public float heightScale, heightOffset;
+
+    [Range(0.0f, 1.0f)]
+    public float scale;
+
+    [Range(0.0f, 1.0f)]
+    public float probability;
+
     public int octaves;
 
     void Start()
@@ -12,19 +19,6 @@ public class PerlinGrapher : MonoBehaviour  // Perlin noise displayer
         lr = this.GetComponent<LineRenderer>();
         lr.positionCount = 100;
         Graph();
-    }
-
-    // Fractal Brownian Motion
-    public float FBM(float x, float z)
-    {
-        float total = 0;
-        float frequency = 1;
-        for (int i = 0; i < octaves; i++)
-        {
-            total += Mathf.PerlinNoise(x * scale * frequency, z * scale * frequency) * heightScale;
-            frequency *= 2;
-        }
-        return total;
     }
 
     public void Graph()
@@ -35,7 +29,7 @@ public class PerlinGrapher : MonoBehaviour  // Perlin noise displayer
         Vector3[] positions = new Vector3[lr.positionCount];
         for (int x = 0; x < lr.positionCount; x++)
         {
-            float y = FBM(x,z) + heightOffset;
+            float y = NoiseUtility.FBM(x, z, octaves, scale, heightScale, heightOffset);
             positions[x] = new Vector3(x, y, z); // height determined by perlin noice
         }
            

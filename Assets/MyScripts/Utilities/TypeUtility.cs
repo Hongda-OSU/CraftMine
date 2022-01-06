@@ -6,7 +6,8 @@ public static class TypeUtility
     public enum BlockSide { BOTTOM, TOP, LEFT, RIGHT, FRONT, BACK }
     public enum BlockType
     {
-        GRASSTOP, GRASSSIDE, DIRT, WATER, STONE, SAND, AIR
+        GRASSTOP, GRASSSIDE, DIRT, WATER, STONE, SAND, GOLD, BEDROCK, REDSTONE, DIAMOND, NOCRACK,
+        CRACK1, CRACK2, CRACK3, CRACK4, AIR
     } //AIR must be the last one
 
     // (0,0)->left down, (0,1), (1,0), (1,1)->up right
@@ -41,7 +42,52 @@ public static class TypeUtility
         {
             new Vector2(0.125f, 0.875f), new Vector2(0.1875f, 0.875f),
             new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f)
+        },
+        /*GOLD*/		
+        { 
+            new Vector2(0f,0.8125f),  new Vector2(0.0625f,0.8125f),
+            new Vector2(0f,0.875f), new Vector2(0.0625f,0.875f)
+        },
+        /*BEDROCK*/		
+        {
+            new Vector2( 0.3125f, 0.8125f ), new Vector2( 0.375f, 0.8125f),
+            new Vector2( 0.3125f, 0.875f ),new Vector2( 0.375f, 0.875f )
+        },
+        /*REDSTONE*/	
+        {
+            new Vector2( 0.1875f, 0.75f ), new Vector2( 0.25f, 0.75f),
+            new Vector2( 0.1875f, 0.8125f ),new Vector2( 0.25f, 0.8125f )
+        },
+        /*DIAMOND*/		
+        {
+            new Vector2( 0.125f, 0.75f ), new Vector2( 0.1875f, 0.75f),
+            new Vector2( 0.125f, 0.8125f ),new Vector2( 0.1875f, 0.8125f )
+        },
+        /*NOCRACK*/		
+        {
+            new Vector2( 0.6875f, 0f ), new Vector2( 0.75f, 0f),
+            new Vector2( 0.6875f, 0.0625f ),new Vector2( 0.75f, 0.0625f )
+        },
+        /*CRACK1*/		
+        { 
+            new Vector2(0f,0f),  new Vector2(0.0625f,0f),
+            new Vector2(0f,0.0625f), new Vector2(0.0625f,0.0625f)
+        },
+        /*CRACK2*/		
+        { 
+            new Vector2(0.0625f,0f),  new Vector2(0.125f,0f),
+            new Vector2(0.0625f,0.0625f), new Vector2(0.125f,0.0625f)
+        },
+        /*CRACK3*/		
+        {
+            new Vector2(0.125f,0f),  new Vector2(0.1875f,0f),
+            new Vector2(0.125f,0.0625f), new Vector2(0.1875f,0.0625f)
+        },
+        /*CRACK4*/		
+        { 
+            new Vector2(0.1875f,0f),  new Vector2(0.25f,0f),
+            new Vector2(0.1875f,0.0625f), new Vector2(0.25f,0.0625f)
         }
-        
+
     };
 }

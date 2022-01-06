@@ -17,12 +17,6 @@ public class Chunk : MonoBehaviour
     // y = (i / WIDTH) % HEIGHT
     // z = i / (WIDTH * HEIGHT)
     public TypeUtility.BlockType[] chunkData;
-
-    [Header("Perlin Setting")] 
-    public float heightScale; // 10f
-    public float scale; // 0.001f
-    public float heightOffset; // -33f
-    public int octaves; // 8
     public Vector3 location;
 
     void Start()
@@ -39,10 +33,40 @@ public class Chunk : MonoBehaviour
             int x = i % width + (int)location.x;
             int y = (i / width) % height + (int)location.y;
             int z = i / (width * height) + (int)location.z;
-            if (NoiseUtility.FBM(x, z, octaves, scale, heightScale, heightOffset) > y) // using perline noise, lower offset -> more blocks in a chunk
+
+            // using perline noise, lower offset -> more blocks in a chunk
+            int surfaceHeight = (int)NoiseUtility.FBM(x, z, World.surfaceSetting.octaves, World.surfaceSetting.scale, 
+                World.surfaceSetting.heightScale, World.surfaceSetting.heightOffset);
+
+            int stoneHeight = (int)NoiseUtility.FBM(x, z, World.stoneSetting.octaves, World.stoneSetting.scale,
+                World.stoneSetting.heightScale, World.stoneSetting.heightOffset);
+
+            int diamondTHeight = (int)NoiseUtility.FBM(x, z, World.diamondTSetting.octaves, World.diamondTSetting.scale,
+                World.diamondTSetting.heightScale, World.diamondTSetting.heightOffset);
+
+            int diamondBHeight = (int)NoiseUtility.FBM(x, z, World.diamondBSetting.octaves, World.diamondBSetting.scale,
+                World.diamondBSetting.heightScale, World.diamondBSetting.heightOffset);
+
+            if (surfaceHeight == y)
+            {
+                chunkData[i] = TypeUtility.BlockType.GRASSSIDE;
+            } 
+            else if (diamondTHeight > y && diamondBHeight < y && UnityEngine.Random.Range(0.0f, 1.0f) <= World.diamondTSetting.probability)
+            {
+                chunkData[i] = TypeUtility.BlockType.DIAMOND;
+            }
+            else if (stoneHeight > y && UnityEngine.Random.Range(0.0f, 1.0f) <= World.stoneSetting.probability)
+            {
+                chunkData[i] = TypeUtility.BlockType.STONE;
+            }
+            else if (surfaceHeight > y)
+            {
                 chunkData[i] = TypeUtility.BlockType.DIRT;
+            }
             else
+            {
                 chunkData[i] = TypeUtility.BlockType.AIR;
+            }
         }
     }
 

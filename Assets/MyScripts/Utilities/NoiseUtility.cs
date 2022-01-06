@@ -15,4 +15,18 @@ public class NoiseUtility
         }
         return total + heightOffset;
     }
+
+    public static float FBM(float x, float y, float z, int octaves, float scale, float heightScale, float heightOffset) // 3D version
+    {
+        float XY = FBM(x, y, octaves, scale, heightScale, heightOffset);
+        float XZ = FBM(x, z, octaves, scale, heightScale, heightOffset);
+
+        float YX = FBM(y, x, octaves, scale, heightScale, heightOffset);
+        float YZ = FBM(y, z, octaves, scale, heightScale, heightOffset);
+        
+        float ZX = FBM(z, x, octaves, scale, heightScale, heightOffset);
+        float ZY = FBM(z, y, octaves, scale, heightScale, heightOffset);
+
+        return (XY + XZ + YX + YZ + ZX + ZY) / 6.0f;
+    }
 }

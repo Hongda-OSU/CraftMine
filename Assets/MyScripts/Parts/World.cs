@@ -2,6 +2,24 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
+public struct PerlinSetting
+{
+    public float heightScale;
+    public float scale;
+    public int octaves;
+    public float heightOffset;
+    public float probability;
+
+    public PerlinSetting(float hs, float s, int o, float ho, float p)
+    {
+        heightScale = hs;
+        scale = s;
+        octaves = o;
+        heightOffset = ho;
+        probability = p;
+    }
+}
+
 public class World : MonoBehaviour
 {
     public static Vector3 worldDimensions = new Vector3(3, 3, 3);
@@ -11,9 +29,29 @@ public class World : MonoBehaviour
     public GameObject fpc;
     public Slider loadingBar;
 
+    public static PerlinSetting surfaceSetting;
+    public PerlinGrapher surface;
+
+    public static PerlinSetting stoneSetting;
+    public PerlinGrapher stone;
+
+    public static PerlinSetting diamondTSetting;
+    public PerlinGrapher diamondTop;
+
+    public static PerlinSetting diamondBSetting;
+    public PerlinGrapher diamondBottom;
+
     void Start()
     {
         loadingBar.maxValue = worldDimensions.x * worldDimensions.y * worldDimensions.z;
+        surfaceSetting = new PerlinSetting(surface.heightScale, surface.scale, surface.octaves, surface.heightOffset,
+            surface.probability);
+        stoneSetting = new PerlinSetting(stone.heightScale, stone.scale, stone.octaves, stone.heightOffset,
+            stone.probability);
+        diamondTSetting = new PerlinSetting(diamondTop.heightScale, diamondTop.scale, diamondTop.octaves, diamondTop.heightOffset,
+            diamondTop.probability);
+        diamondBSetting = new PerlinSetting(diamondBottom.heightScale, diamondBottom.scale, diamondBottom.octaves, diamondBottom.heightOffset,
+            diamondBottom.probability);
         StartCoroutine(BuildWorld());
     }
 
@@ -40,7 +78,8 @@ public class World : MonoBehaviour
         float xpos = worldDimensions.x * chunkDimensions.x / 2.0f;
         float zpos = worldDimensions.z * chunkDimensions.z / 2.0f;
         Chunk c = chunkPrefab.GetComponent<Chunk>();
-        float ypos = NoiseUtility.FBM(xpos, zpos, c.octaves, c.scale, c.heightScale, c.heightOffset) + 10;
+        float ypos = NoiseUtility.FBM(xpos, zpos, stoneSetting.octaves, stoneSetting.scale, 
+            stoneSetting.heightScale, stoneSetting.heightOffset) + 10;
         fpc.transform.position = new Vector3(xpos, ypos, zpos);
         loadingBar.gameObject.SetActive(false);
         fpc.SetActive(true);

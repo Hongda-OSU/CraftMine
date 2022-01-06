@@ -14,11 +14,30 @@ public class Block
         if(bType == TypeUtility.BlockType.AIR) return;
 
         List<Quad> quads = new List<Quad>();
-        if (!hasSolidNeighbor((int)blockLocalPos.x, (int)blockLocalPos.y - 1, (int)blockLocalPos.z))
-            quads.Add(new Quad(TypeUtility.BlockSide.BOTTOM, position, bType));
-        
-        if (!hasSolidNeighbor((int)blockLocalPos.x, (int)blockLocalPos.y + 1, (int)blockLocalPos.z))
-            quads.Add(new Quad(TypeUtility.BlockSide.TOP, position, bType));
+        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y - 1, (int) blockLocalPos.z))
+        {
+            if (bType == TypeUtility.BlockType.GRASSSIDE)
+            {
+                quads.Add(new Quad(TypeUtility.BlockSide.TOP, position, TypeUtility.BlockType.DIRT));
+            }
+            else
+            {
+                quads.Add(new Quad(TypeUtility.BlockSide.BOTTOM, position, bType));
+            }
+        }
+
+        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y + 1, (int) blockLocalPos.z))
+        {
+            if (bType == TypeUtility.BlockType.GRASSSIDE) // Grass have different top
+            {
+                quads.Add(new Quad(TypeUtility.BlockSide.TOP, position, TypeUtility.BlockType.GRASSTOP));
+            }
+            else
+            {
+                quads.Add(new Quad(TypeUtility.BlockSide.TOP, position, bType));
+            }
+        }
+           
         
         if (!hasSolidNeighbor((int)blockLocalPos.x - 1, (int)blockLocalPos.y, (int)blockLocalPos.z))
             quads.Add(new Quad(TypeUtility.BlockSide.LEFT, position, bType));
