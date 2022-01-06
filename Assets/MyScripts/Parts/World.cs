@@ -23,7 +23,7 @@ public class World : MonoBehaviour
     public static NoiseUtility.PerlinSetting diamondBSetting;
     public PerlinGrapher diamondBottom;
 
-    public static NoiseUtility.Perlin3DSetting caveSetting;
+    public static NoiseUtility.PerlinSetting caveSetting;
     public Perlin3DGrapher cave;
 
     void Start()
@@ -37,7 +37,7 @@ public class World : MonoBehaviour
             diamondTop.probability);
         diamondBSetting = new NoiseUtility.PerlinSetting(diamondBottom.heightScale, diamondBottom.scale, diamondBottom.octaves, diamondBottom.heightOffset,
             diamondBottom.probability);
-        caveSetting = new NoiseUtility.Perlin3DSetting(cave.heightScale, cave.scale, cave.octaves, cave.heightOffset,
+        caveSetting = new NoiseUtility.PerlinSetting(cave.heightScale, cave.scale, cave.octaves, cave.heightOffset,
             cave.DrawCutOff);
         StartCoroutine(BuildWorld());
     }
@@ -59,7 +59,7 @@ public class World : MonoBehaviour
             }
         }
 
-        mCamera.SetActive(false);
+        mCamera.SetActive(false); // switch camera to fpc
 
         // put fpc in the middle of the world
         float xpos = worldDimensions.x * chunkDimensions.x / 2.0f;

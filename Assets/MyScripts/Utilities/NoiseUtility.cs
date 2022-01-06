@@ -8,7 +8,7 @@ public class NoiseUtility
         public float scale;
         public int octaves;
         public float heightOffset;
-        public float probability;
+        public float probability; // also DrawCutOff
 
         public PerlinSetting(float hs, float s, int o, float ho, float p)
         {
@@ -17,24 +17,6 @@ public class NoiseUtility
             octaves = o;
             heightOffset = ho;
             probability = p;
-        }
-    }
-
-    public struct Perlin3DSetting
-    {
-        public float heightScale;
-        public float scale;
-        public int octaves;
-        public float heightOffset;
-        public float DrawCutOff;
-
-        public Perlin3DSetting(float hs, float s, int o, float ho, float co)
-        {
-            heightScale = hs;
-            scale = s;
-            octaves = o;
-            heightOffset = ho;
-            DrawCutOff = co;
         }
     }
 
@@ -52,7 +34,8 @@ public class NoiseUtility
         return total + heightOffset;
     }
 
-    public static float FBM(float x, float y, float z, int octaves, float scale, float heightScale, float heightOffset) // 3D version
+    // 3D version overwrite
+    public static float FBM(float x, float y, float z, int octaves, float scale, float heightScale, float heightOffset) 
     {
         float XY = FBM(x, y, octaves, scale, heightScale, heightOffset);
         float XZ = FBM(x, z, octaves, scale, heightScale, heightOffset);

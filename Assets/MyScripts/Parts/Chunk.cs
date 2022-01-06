@@ -45,6 +45,20 @@ public class Chunk : MonoBehaviour
             int digCave = (int)NoiseUtility.FBM(x, y, z, World.caveSetting.octaves, World.caveSetting.scale,
                 World.caveSetting.heightScale, World.caveSetting.heightOffset);
 
+            // bedrock creation
+            if (y == 0)
+            {
+                chunkData[i] = TypeUtility.BlockType.BEDROCK;
+                continue;
+            }
+
+            // cave creation
+            if (digCave < World.caveSetting.probability)
+            {
+                chunkData[i] = TypeUtility.BlockType.AIR;
+                continue;
+            }
+
             if (surfaceHeight == y)
             {
                 chunkData[i] = TypeUtility.BlockType.GRASSSIDE;
@@ -62,12 +76,6 @@ public class Chunk : MonoBehaviour
                 chunkData[i] = TypeUtility.BlockType.DIRT;
             }
             else
-            {
-                chunkData[i] = TypeUtility.BlockType.AIR;
-            }
-
-            // cave creation
-            if (digCave < World.caveSetting.DrawCutOff)
             {
                 chunkData[i] = TypeUtility.BlockType.AIR;
             }
