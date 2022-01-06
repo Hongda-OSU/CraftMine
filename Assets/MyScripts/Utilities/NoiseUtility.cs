@@ -2,6 +2,42 @@ using UnityEngine;
 
 public class NoiseUtility
 {
+    public struct PerlinSetting
+    {
+        public float heightScale;
+        public float scale;
+        public int octaves;
+        public float heightOffset;
+        public float probability;
+
+        public PerlinSetting(float hs, float s, int o, float ho, float p)
+        {
+            heightScale = hs;
+            scale = s;
+            octaves = o;
+            heightOffset = ho;
+            probability = p;
+        }
+    }
+
+    public struct Perlin3DSetting
+    {
+        public float heightScale;
+        public float scale;
+        public int octaves;
+        public float heightOffset;
+        public float DrawCutOff;
+
+        public Perlin3DSetting(float hs, float s, int o, float ho, float co)
+        {
+            heightScale = hs;
+            scale = s;
+            octaves = o;
+            heightOffset = ho;
+            DrawCutOff = co;
+        }
+    }
+
     // Fractal Brownian Motion
     // octaves: the amount of perline noise add together
     public static float FBM(float x, float z, int octaves, float scale, float heightScale, float heightOffset) 

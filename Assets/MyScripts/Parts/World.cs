@@ -2,56 +2,43 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-public struct PerlinSetting
-{
-    public float heightScale;
-    public float scale;
-    public int octaves;
-    public float heightOffset;
-    public float probability;
-
-    public PerlinSetting(float hs, float s, int o, float ho, float p)
-    {
-        heightScale = hs;
-        scale = s;
-        octaves = o;
-        heightOffset = ho;
-        probability = p;
-    }
-}
-
 public class World : MonoBehaviour
 {
-    public static Vector3 worldDimensions = new Vector3(3, 3, 3);
+    public static Vector3 worldDimensions = new Vector3(4, 4, 4);
     public static Vector3 chunkDimensions = new Vector3(10, 10, 10);
     public GameObject chunkPrefab;
     public GameObject mCamera; // main camera
     public GameObject fpc;
     public Slider loadingBar;
 
-    public static PerlinSetting surfaceSetting;
+    public static NoiseUtility.PerlinSetting surfaceSetting;
     public PerlinGrapher surface;
 
-    public static PerlinSetting stoneSetting;
+    public static NoiseUtility.PerlinSetting stoneSetting;
     public PerlinGrapher stone;
 
-    public static PerlinSetting diamondTSetting;
+    public static NoiseUtility.PerlinSetting diamondTSetting;
     public PerlinGrapher diamondTop;
 
-    public static PerlinSetting diamondBSetting;
+    public static NoiseUtility.PerlinSetting diamondBSetting;
     public PerlinGrapher diamondBottom;
+
+    public static NoiseUtility.Perlin3DSetting caveSetting;
+    public Perlin3DGrapher cave;
 
     void Start()
     {
         loadingBar.maxValue = worldDimensions.x * worldDimensions.y * worldDimensions.z;
-        surfaceSetting = new PerlinSetting(surface.heightScale, surface.scale, surface.octaves, surface.heightOffset,
+        surfaceSetting = new NoiseUtility.PerlinSetting(surface.heightScale, surface.scale, surface.octaves, surface.heightOffset,
             surface.probability);
-        stoneSetting = new PerlinSetting(stone.heightScale, stone.scale, stone.octaves, stone.heightOffset,
+        stoneSetting = new NoiseUtility.PerlinSetting(stone.heightScale, stone.scale, stone.octaves, stone.heightOffset,
             stone.probability);
-        diamondTSetting = new PerlinSetting(diamondTop.heightScale, diamondTop.scale, diamondTop.octaves, diamondTop.heightOffset,
+        diamondTSetting = new NoiseUtility.PerlinSetting(diamondTop.heightScale, diamondTop.scale, diamondTop.octaves, diamondTop.heightOffset,
             diamondTop.probability);
-        diamondBSetting = new PerlinSetting(diamondBottom.heightScale, diamondBottom.scale, diamondBottom.octaves, diamondBottom.heightOffset,
+        diamondBSetting = new NoiseUtility.PerlinSetting(diamondBottom.heightScale, diamondBottom.scale, diamondBottom.octaves, diamondBottom.heightOffset,
             diamondBottom.probability);
+        caveSetting = new NoiseUtility.Perlin3DSetting(cave.heightScale, cave.scale, cave.octaves, cave.heightOffset,
+            cave.DrawCutOff);
         StartCoroutine(BuildWorld());
     }
 
@@ -85,8 +72,4 @@ public class World : MonoBehaviour
         fpc.SetActive(true);
     }
 
-    void Update()
-    {
-        
-    }
 }

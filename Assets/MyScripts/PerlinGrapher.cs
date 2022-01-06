@@ -5,14 +5,11 @@ public class PerlinGrapher : MonoBehaviour  // Perlin noise displayer
 { 
     public LineRenderer lr;
     public float heightScale, heightOffset;
-
+    public int octaves;
     [Range(0.0f, 1.0f)]
     public float scale;
-
     [Range(0.0f, 1.0f)]
     public float probability;
-
-    public int octaves;
 
     void Start()
     {
@@ -39,10 +36,5 @@ public class PerlinGrapher : MonoBehaviour  // Perlin noise displayer
     void OnValidate()
     {
         Graph();
-    }
-
-    void Update()
-    {
-        
     }
 }

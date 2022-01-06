@@ -14,6 +14,8 @@ public class Block
         if(bType == TypeUtility.BlockType.AIR) return;
 
         List<Quad> quads = new List<Quad>();
+
+        // Grass have different top and bottom
         if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y - 1, (int) blockLocalPos.z))
         {
             if (bType == TypeUtility.BlockType.GRASSSIDE)
@@ -28,7 +30,7 @@ public class Block
 
         if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y + 1, (int) blockLocalPos.z))
         {
-            if (bType == TypeUtility.BlockType.GRASSSIDE) // Grass have different top
+            if (bType == TypeUtility.BlockType.GRASSSIDE) 
             {
                 quads.Add(new Quad(TypeUtility.BlockSide.TOP, position, TypeUtility.BlockType.GRASSTOP));
             }

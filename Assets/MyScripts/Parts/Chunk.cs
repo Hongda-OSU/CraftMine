@@ -19,11 +19,6 @@ public class Chunk : MonoBehaviour
     public TypeUtility.BlockType[] chunkData;
     public Vector3 location;
 
-    void Start()
-    {
-
-    }
-
     public void BuildChunk()
     {
         int blockCount = width * depth * height;
@@ -47,6 +42,9 @@ public class Chunk : MonoBehaviour
             int diamondBHeight = (int)NoiseUtility.FBM(x, z, World.diamondBSetting.octaves, World.diamondBSetting.scale,
                 World.diamondBSetting.heightScale, World.diamondBSetting.heightOffset);
 
+            int digCave = (int)NoiseUtility.FBM(x, y, z, World.caveSetting.octaves, World.caveSetting.scale,
+                World.caveSetting.heightScale, World.caveSetting.heightOffset);
+
             if (surfaceHeight == y)
             {
                 chunkData[i] = TypeUtility.BlockType.GRASSSIDE;
@@ -64,6 +62,12 @@ public class Chunk : MonoBehaviour
                 chunkData[i] = TypeUtility.BlockType.DIRT;
             }
             else
+            {
+                chunkData[i] = TypeUtility.BlockType.AIR;
+            }
+
+            // cave creation
+            if (digCave < World.caveSetting.DrawCutOff)
             {
                 chunkData[i] = TypeUtility.BlockType.AIR;
             }
@@ -203,12 +207,5 @@ public class Chunk : MonoBehaviour
                 }
             }
         }
-    }
-
-
-
-    void Update()
-    {
-        
     }
 }
