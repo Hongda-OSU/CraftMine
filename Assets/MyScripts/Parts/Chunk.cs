@@ -12,12 +12,12 @@ public class Chunk : MonoBehaviour
     public Material material; 
     public int width, height, depth;
     public Block[,,] blocks;
-
     // (flatten array) Flat[x + WIDTH * (y + DEPTH * z)] = Original[x,y,z] 
     // x = i % WIDTH
     // y = (i / WIDTH) % HEIGHT
     // z = i / (WIDTH * HEIGHT)
     public TypeUtility.BlockType[] chunkData;
+    public TypeUtility.BlockType[] healthData;
     public Vector3 location;
     public MeshRenderer meshRender;
 
@@ -28,6 +28,7 @@ public class Chunk : MonoBehaviour
     struct CalculateBlockTypes : IJobParallelFor
     {
         public NativeArray<TypeUtility.BlockType> cData;
+        public NativeArray<TypeUtility.BlockType> hData;
         public int width;
         public int height;
         public Vector3 location;
@@ -55,6 +56,8 @@ public class Chunk : MonoBehaviour
 
             int digCave = (int)NoiseUtility.FBM(x, y, z, World.caveSetting.octaves, World.caveSetting.scale,
                 World.caveSetting.heightScale, World.caveSetting.heightOffset);
+
+            hData[i] = TypeUtility.BlockType.NOCRACK;
 
             // bedrock creation
             if (y == 0)
@@ -97,7 +100,9 @@ public class Chunk : MonoBehaviour
     {
         int blockCount = width * depth * height;
         chunkData = new TypeUtility.BlockType[blockCount];
+        healthData = new TypeUtility.BlockType[blockCount];
         NativeArray<TypeUtility.BlockType> blockTypes = new NativeArray<TypeUtility.BlockType>(chunkData, Allocator.Persistent);
+        NativeArray<TypeUtility.BlockType> healthTypes = new NativeArray<TypeUtility.BlockType>(healthData, Allocator.Persistent);
 
         var randomArray = new Unity.Mathematics.Random[blockCount];
         var seed = new System.Random();
@@ -108,6 +113,7 @@ public class Chunk : MonoBehaviour
         calculateBlockTypes = new CalculateBlockTypes()
         {
             cData = blockTypes,
+            hData = healthTypes,
             width = width,
             height = height,
             location = location,
@@ -116,7 +122,9 @@ public class Chunk : MonoBehaviour
         jobHandle = calculateBlockTypes.Schedule(chunkData.Length, 64);
         jobHandle.Complete();
         calculateBlockTypes.cData.CopyTo(chunkData);
+        calculateBlockTypes.hData.CopyTo(healthData);
         blockTypes.Dispose();
+        healthTypes.Dispose();
         RandomArray.Dispose();
     }
 
@@ -148,7 +156,8 @@ public class Chunk : MonoBehaviour
             {
                 for (int x = 0; x < width; x++)
                 {
-                    blocks[x, y, z] = new Block(new Vector3(x, y, z) + location, chunkData[x + width * (y + depth * z)], this);
+                    blocks[x, y, z] = new Block(new Vector3(x, y, z) + location, chunkData[x + width * (y + depth * z)],
+                        healthData[x + width * (y + depth * z)], this);
                     if (blocks[x,y,z].mesh == null) continue;
                     inputMeshes.Add(blocks[x, y, z].mesh);
                     var vcount = blocks[x, y, z].mesh.vertexCount;
@@ -169,7 +178,8 @@ public class Chunk : MonoBehaviour
         jobs.outputMesh.SetVertexBufferParams(vertexStart, 
             new VertexAttributeDescriptor(VertexAttribute.Position, stream: 0), 
             new VertexAttributeDescriptor(VertexAttribute.Normal, stream: 1),
-            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, stream: 2));
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, stream: 2),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord1, stream: 3)); // second uv set
 
         var handle = jobs.Schedule(inputMeshes.Count, 4);
         var newMesh = new Mesh();
@@ -217,21 +227,27 @@ public class Chunk : MonoBehaviour
             var uvs = new NativeArray<float3>(vCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             data.GetUVs(0, uvs.Reinterpret<Vector3>());
 
+            var uv2s = new NativeArray<float3>(vCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            data.GetUVs(1, uv2s.Reinterpret<Vector3>());
+
             var outputVerts = outputMesh.GetVertexData<Vector3>(stream: 0);
             var outputNormals = outputMesh.GetVertexData<Vector3>(stream: 1);
             var outputUVs = outputMesh.GetVertexData<Vector3>(stream: 2);
+            var outputUV2s = outputMesh.GetVertexData<Vector3>(stream: 3);
 
             for (int i = 0; i < vCount; i++)
             {
                 outputVerts[i + vStart] = verts[i];
                 outputNormals[i + vStart] = normals[i];
                 outputUVs[i + vStart] = uvs[i];
+                outputUV2s[i + vStart] = uv2s[i];
             }
 
             // Prevent memory leak
             verts.Dispose();
             normals.Dispose();
             uvs.Dispose();
+            uv2s.Dispose();
 
             var tStart = triStart[index];
             var tCount = data.GetSubMesh(0).indexCount;

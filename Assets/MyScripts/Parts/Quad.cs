@@ -1,10 +1,11 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class Quad // QUAD：square like stuff
 {
     public Mesh mesh;
 
-    public Quad(TypeUtility.BlockSide side, Vector3 offset, TypeUtility.BlockType bType)
+    public Quad(TypeUtility.BlockSide side, Vector3 offset, TypeUtility.BlockType bType, TypeUtility.BlockType hType)
     {
         mesh = new Mesh();
         mesh.name = "ScriptedQuad";
@@ -18,6 +19,12 @@ public class Quad // QUAD：square like stuff
         Vector2 uv10 = TypeUtility.blockUVs[(int)bType, 1];
         Vector2 uv01 = TypeUtility.blockUVs[(int)bType, 2];
         Vector2 uv11 = TypeUtility.blockUVs[(int)bType, 3];
+
+        List<Vector2> secondaryUvs = new List<Vector2>();
+        secondaryUvs.Add(TypeUtility.blockUVs[(int)hType, 3]);
+        secondaryUvs.Add(TypeUtility.blockUVs[(int)hType, 2]);
+        secondaryUvs.Add(TypeUtility.blockUVs[(int)hType, 0]);
+        secondaryUvs.Add(TypeUtility.blockUVs[(int)hType, 1]);
 
         // Possible vertices
         Vector3 p0 = new Vector3(-0.5f, -0.5f, 0.5f) + offset;
@@ -61,13 +68,13 @@ public class Quad // QUAD：square like stuff
                 normals = new Vector3[] { Vector3.right, Vector3.right, Vector3.right, Vector3.right };
                 uvs = new Vector2[] { uv11, uv01, uv00, uv10 };
                 break;
-
         }
         
         mesh.vertices = vertices;
         mesh.normals = normals;
         mesh.uv = uvs;
         mesh.triangles = triangles;
+        mesh.SetUVs(1, secondaryUvs); // second channel
 
         mesh.RecalculateBounds();
     }

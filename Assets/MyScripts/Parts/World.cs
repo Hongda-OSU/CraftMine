@@ -37,6 +37,7 @@ public class World : MonoBehaviour
     public int drawRadius;
 
     private WaitForSeconds wfs = new WaitForSeconds(0.5f);
+    private WaitForSeconds threeSeconds = new WaitForSeconds(3f);
     public TypeUtility.BlockType buildType = TypeUtility.BlockType.DIRT;
 
     void Start()
@@ -71,33 +72,96 @@ public class World : MonoBehaviour
             {
                 Vector3 hitBlock = Vector3.zero;
                 if (Input.GetMouseButtonDown(0))
-                {
                     hitBlock = hit.point - hit.normal / 2.0f;
-                }
                 else
-                {
                     hitBlock = hit.point + hit.normal / 2.0f;
-                }
 
                 Chunk thisChunk = hit.collider.gameObject.GetComponent<Chunk>();
                 int bx = (int)(Mathf.Round(hitBlock.x) - thisChunk.location.x);
                 int by = (int)(Mathf.Round(hitBlock.y) - thisChunk.location.y);
                 int bz = (int)(Mathf.Round(hitBlock.z) - thisChunk.location.z);
-                int i = bx + chunkDimensions.x * (by + chunkDimensions.z * bz);
 
+                Vector3Int neighbor;
+                if (bx == chunkDimensions.x) // next neighbor chunk
+                {
+                    neighbor = new Vector3Int((int)thisChunk.location.x + chunkDimensions.x, (int)thisChunk.location.y,
+                        (int)thisChunk.location.z);
+                    thisChunk = chunks[neighbor];
+                    bx = 0;
+                }
+                else if (bx == -1) // previous neighbor chunk
+                {
+                    neighbor = new Vector3Int((int)thisChunk.location.x - chunkDimensions.x, (int)thisChunk.location.y,
+                        (int)thisChunk.location.z);
+                    thisChunk = chunks[neighbor];
+                    bx = chunkDimensions.x - 1;
+                }
+                else if (by == chunkDimensions.y) 
+                {
+                    neighbor = new Vector3Int((int)thisChunk.location.x, (int)thisChunk.location.y + chunkDimensions.y,
+                        (int)thisChunk.location.z);
+                    thisChunk = chunks[neighbor];
+                    by = 0;
+                }
+                else if (by == -1)
+                {
+                    neighbor = new Vector3Int((int)thisChunk.location.x, (int)thisChunk.location.y - chunkDimensions.y,
+                        (int)thisChunk.location.z);
+                    thisChunk = chunks[neighbor];
+                    by = chunkDimensions.y - 1;
+                }
+                else if (bz == chunkDimensions.z)
+                {
+                    neighbor = new Vector3Int((int)thisChunk.location.x, (int)thisChunk.location.y,
+                        (int)thisChunk.location.z + chunkDimensions.z);
+                    thisChunk = chunks[neighbor];
+                    bz = 0;
+                }
+                else if (bz == -1) 
+                {
+                    neighbor = new Vector3Int((int)thisChunk.location.x, (int)thisChunk.location.y,
+                        (int)thisChunk.location.z - chunkDimensions.z);
+                    thisChunk = chunks[neighbor];
+                    bz = chunkDimensions.z - 1;
+                }
+
+                int i = bx + chunkDimensions.x * (by + chunkDimensions.z * bz);
                 if (Input.GetMouseButtonDown(0))
                 {
-                    thisChunk.chunkData[i] = TypeUtility.BlockType.AIR;
+                    if (TypeUtility.blockTypeHealth[(int) thisChunk.chunkData[i]] != -1) // breakable
+                    {
+                        if (thisChunk.healthData[i] == TypeUtility.BlockType.NOCRACK)
+                            StartCoroutine(HealBlock(thisChunk, i));
+                        thisChunk.healthData[i]++;
+                        if (thisChunk.healthData[i] == TypeUtility.BlockType.NOCRACK + TypeUtility.blockTypeHealth[(int)thisChunk.chunkData[i]])
+                            thisChunk.chunkData[i] = TypeUtility.BlockType.AIR;
+                    }
                 }
                 else
                 {
                     thisChunk.chunkData[i] = buildType;
+                    thisChunk.healthData[i] = TypeUtility.BlockType.NOCRACK;
                 }
-                DestroyImmediate(thisChunk.GetComponent<MeshFilter>());
-                DestroyImmediate(thisChunk.GetComponent<MeshRenderer>());
-                DestroyImmediate(thisChunk.GetComponent<Collider>());
-                thisChunk.CreateChunk(chunkDimensions, thisChunk.location, false);
+                ReDrawChunk(thisChunk);
             }
+        }
+    }
+
+    public void ReDrawChunk(Chunk c)
+    {
+        DestroyImmediate(c.GetComponent<MeshFilter>());
+        DestroyImmediate(c.GetComponent<MeshRenderer>());
+        DestroyImmediate(c.GetComponent<Collider>());
+        c.CreateChunk(chunkDimensions, c.location, false);
+    }
+
+    IEnumerator HealBlock(Chunk c, int blockIndex)
+    {
+        yield return threeSeconds;
+        if (c.chunkData[blockIndex] != TypeUtility.BlockType.AIR)
+        {
+            c.healthData[blockIndex] = TypeUtility.BlockType.NOCRACK;
+            ReDrawChunk(c);
         }
     }
 

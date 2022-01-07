@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector2>;
+using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector2, UnityEngine.Vector2>;
 
 public class MeshUtility
 {
@@ -20,8 +20,9 @@ public class MeshUtility
             {
                 Vector3 v = meshes[i].vertices[j];
                 Vector3 n = meshes[i].normals[j];
-                Vector3 u = meshes[i].uv[j];
-                VertexData p = new VertexData(v, n, u);
+                Vector2 u = meshes[i].uv[j];
+                Vector2 u2 = meshes[i].uv2[j];
+                VertexData p = new VertexData(v, n, u, u2);
                 if (!pointsHash.Contains(p)) // Fast search
                 {
                     pointsOrder.Add(p, pIndex);
@@ -35,8 +36,9 @@ public class MeshUtility
                 int triPoint = meshes[i].triangles[t];
                 Vector3 v = meshes[i].vertices[triPoint];
                 Vector3 n = meshes[i].normals[triPoint];
-                Vector3 u = meshes[i].uv[triPoint];
-                VertexData p = new VertexData(v, n, u);
+                Vector2 u = meshes[i].uv[triPoint];
+                Vector2 u2 = meshes[i].uv2[triPoint];
+                VertexData p = new VertexData(v, n, u, u2);
 
                 int triIndex;
                 pointsOrder.TryGetValue(p, out triIndex);
@@ -57,16 +59,19 @@ public class MeshUtility
         List<Vector3> verts = new List<Vector3>();
         List<Vector3> norms = new List<Vector3>();
         List<Vector2> uvs = new List<Vector2>();
+        List<Vector2> uv2s = new List<Vector2>();
 
         foreach (VertexData v in list.Keys)
         {
             verts.Add(v.Item1);
             norms.Add(v.Item2);
             uvs.Add(v.Item3);
+            uv2s.Add(v.Item4);
         }
 
         mesh.vertices = verts.ToArray();
         mesh.normals = norms.ToArray();
         mesh.uv = uvs.ToArray();
+        mesh.uv2 = uv2s.ToArray();
     }
 }

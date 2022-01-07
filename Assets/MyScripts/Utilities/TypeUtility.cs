@@ -10,6 +10,11 @@ public static class TypeUtility
         CRACK1, CRACK2, CRACK3, CRACK4, AIR
     } //AIR must be the last one
 
+    public static int[] blockTypeHealth =
+    {
+        2, 2, 1, 1, 1, 3, 1, 3, 4, -1, 3, 3, 4, -1, -1, -1, -1, -1, -1
+    }; // -1 -> not breakable
+
     // (0,0)->left down, (0,1)->right down, (1,0)->up left, (1,1)->up right
     public static Vector2[,] blockUVs =
     {
