@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Jobs;
 using UnityEngine.Rendering;
+using Random = Unity.Mathematics.Random;
 
 public class Chunk : MonoBehaviour
 {
@@ -20,18 +21,27 @@ public class Chunk : MonoBehaviour
     public Vector3 location;
     public MeshRenderer meshRender;
 
-    public void BuildChunk()
+    private CalculateBlockTypes calculateBlockTypes;
+    private JobHandle jobHandle;
+    public NativeArray<Unity.Mathematics.Random> RandomArray { private get; set; }
+
+    struct CalculateBlockTypes : IJobParallelFor
     {
-        int blockCount = width * depth * height;
-        chunkData = new TypeUtility.BlockType[blockCount];
-        for (int i = 0; i < blockCount; i++)
+        public NativeArray<TypeUtility.BlockType> cData;
+        public int width;
+        public int height;
+        public Vector3 location;
+        public NativeArray<Unity.Mathematics.Random> randoms;
+
+        public void Execute(int i)
         {
             int x = i % width + (int)location.x;
             int y = (i / width) % height + (int)location.y;
             int z = i / (width * height) + (int)location.z;
+            var random = randoms[i];
 
             // using perline noise, lower offset -> more blocks in a chunk
-            int surfaceHeight = (int)NoiseUtility.FBM(x, z, World.surfaceSetting.octaves, World.surfaceSetting.scale, 
+            int surfaceHeight = (int)NoiseUtility.FBM(x, z, World.surfaceSetting.octaves, World.surfaceSetting.scale,
                 World.surfaceSetting.heightScale, World.surfaceSetting.heightOffset);
 
             int stoneHeight = (int)NoiseUtility.FBM(x, z, World.stoneSetting.octaves, World.stoneSetting.scale,
@@ -49,41 +59,68 @@ public class Chunk : MonoBehaviour
             // bedrock creation
             if (y == 0)
             {
-                chunkData[i] = TypeUtility.BlockType.BEDROCK;
-                continue;
+                cData[i] = TypeUtility.BlockType.BEDROCK;
+                return;
             }
 
             // cave creation
             if (digCave < World.caveSetting.probability)
             {
-                chunkData[i] = TypeUtility.BlockType.AIR;
-                continue;
+                cData[i] = TypeUtility.BlockType.AIR;
+                return;
             }
 
             if (surfaceHeight == y)
             {
-                chunkData[i] = TypeUtility.BlockType.GRASSSIDE;
-            } 
-            else if (diamondTHeight > y && diamondBHeight < y && UnityEngine.Random.Range(0.0f, 1.0f) <= World.diamondTSetting.probability)
-            {
-                chunkData[i] = TypeUtility.BlockType.DIAMOND;
+                cData[i] = TypeUtility.BlockType.GRASSSIDE;
             }
-            else if (stoneHeight > y && UnityEngine.Random.Range(0.0f, 1.0f) <= World.stoneSetting.probability)
+            else if (diamondTHeight > y && diamondBHeight < y && random.NextFloat(1) <= World.diamondTSetting.probability)
             {
-                chunkData[i] = TypeUtility.BlockType.STONE;
+                cData[i] = TypeUtility.BlockType.DIAMOND;
+            }
+            else if (stoneHeight > y && random.NextFloat(1) <= World.stoneSetting.probability)
+            {
+                cData[i] = TypeUtility.BlockType.STONE;
             }
             else if (surfaceHeight > y)
             {
-                chunkData[i] = TypeUtility.BlockType.DIRT;
+                cData[i] = TypeUtility.BlockType.DIRT;
             }
             else
             {
-                chunkData[i] = TypeUtility.BlockType.AIR;
+                cData[i] = TypeUtility.BlockType.AIR;
             }
         }
     }
 
-    public void CreateChunk(Vector3 dimension, Vector3 position)
+    public void BuildChunk()
+    {
+        int blockCount = width * depth * height;
+        chunkData = new TypeUtility.BlockType[blockCount];
+        NativeArray<TypeUtility.BlockType> blockTypes = new NativeArray<TypeUtility.BlockType>(chunkData, Allocator.Persistent);
+
+        var randomArray = new Unity.Mathematics.Random[blockCount];
+        var seed = new System.Random();
+        for (int i = 0; i < blockCount; i++)
+            randomArray[i] = new Unity.Mathematics.Random((uint) seed.Next());
+        RandomArray = new NativeArray<Random>(randomArray, Allocator.Persistent);
+
+        calculateBlockTypes = new CalculateBlockTypes()
+        {
+            cData = blockTypes,
+            width = width,
+            height = height,
+            location = location,
+            randoms = RandomArray
+        };
+        jobHandle = calculateBlockTypes.Schedule(chunkData.Length, 64);
+        jobHandle.Complete();
+        calculateBlockTypes.cData.CopyTo(chunkData);
+        blockTypes.Dispose();
+        RandomArray.Dispose();
+    }
+
+    public void CreateChunk(Vector3 dimension, Vector3 position, bool rebuildBlocks = true)
     {
         location = position;
         width = (int) dimension.x;
@@ -95,7 +132,8 @@ public class Chunk : MonoBehaviour
         meshRender = mr;
         mr.material = material;
         blocks = new Block[width, height, depth];
-        BuildChunk();
+        if (rebuildBlocks) 
+            BuildChunk();
 
         List<Mesh> inputMeshes = new List<Mesh>();
         int vertexStart = 0, triStart = 0, counter = 0;

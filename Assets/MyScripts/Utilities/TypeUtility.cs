@@ -6,7 +6,7 @@ public static class TypeUtility
     public enum BlockSide { BOTTOM, TOP, LEFT, RIGHT, FRONT, BACK }
     public enum BlockType
     {
-        GRASSTOP, GRASSSIDE, DIRT, WATER, STONE, SAND, GOLD, BEDROCK, REDSTONE, DIAMOND, NOCRACK,
+        GRASSTOP, GRASSSIDE, DIRT, WATER, LAVA, STONE, SAND, GOLD, GOLDBLOCK, BEDROCK, REDSTONE, DIAMOND, DIAMONDBLOCK, NOCRACK,
         CRACK1, CRACK2, CRACK3, CRACK4, AIR
     } //AIR must be the last one
 
@@ -33,6 +33,11 @@ public static class TypeUtility
             new Vector2(14, 2) * spriteUnit, new Vector2(15, 2) * spriteUnit,
             new Vector2(14, 3) * spriteUnit, new Vector2(15, 3) * spriteUnit
         },
+        /*LAVA*/
+        {
+            new Vector2(13, 1) * spriteUnit, new Vector2(14, 1) * spriteUnit,
+            new Vector2(13, 2) * spriteUnit, new Vector2(14, 2) * spriteUnit
+        },
         /*STONE*/
         {
             new Vector2(0, 14) * spriteUnit, new Vector2(1, 14) * spriteUnit,
@@ -48,6 +53,11 @@ public static class TypeUtility
             new Vector2(0, 13) * spriteUnit,  new Vector2(1, 13) * spriteUnit,
             new Vector2(0, 14) * spriteUnit, new Vector2(1, 14) * spriteUnit
         },
+        /*GOLDBLOCK*/		
+        {
+            new Vector2(7, 14) * spriteUnit,  new Vector2(8, 14) * spriteUnit,
+            new Vector2(7, 15) * spriteUnit, new Vector2(8, 15) * spriteUnit
+        },
         /*BEDROCK*/		
         {
             new Vector2(1, 14) * spriteUnit, new Vector2(2, 14) * spriteUnit,
@@ -62,6 +72,11 @@ public static class TypeUtility
         {
             new Vector2(2, 12) * spriteUnit, new Vector2(3, 12) * spriteUnit,
             new Vector2(2, 13) * spriteUnit, new Vector2(3, 13) * spriteUnit
+        },
+        /*DIAMONDBLOCK*/		
+        {
+            new Vector2(8, 14) * spriteUnit, new Vector2(9, 14) * spriteUnit,
+            new Vector2(8, 15) * spriteUnit, new Vector2(9, 15) * spriteUnit
         },
         /*NOCRACK*/		
         {

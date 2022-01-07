@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 public class World : MonoBehaviour
 {
-    public static Vector3Int worldDimensions = new Vector3Int(4, 4, 4);
+    public static Vector3Int worldDimensions = new Vector3Int(5, 5, 5);
+    public static Vector3Int extraWorldDimensions = new Vector3Int(5, 5, 5);
     public static Vector3Int chunkDimensions = new Vector3Int(10, 10, 10);
     public GameObject chunkPrefab;
     public GameObject mCamera; // main camera
@@ -35,6 +36,9 @@ public class World : MonoBehaviour
     private Queue<IEnumerator> buildQueue = new Queue<IEnumerator>();
     public int drawRadius;
 
+    private WaitForSeconds wfs = new WaitForSeconds(0.5f);
+    public TypeUtility.BlockType buildType = TypeUtility.BlockType.DIRT;
+
     void Start()
     {
         loadingBar.maxValue = worldDimensions.x * worldDimensions.z;
@@ -51,6 +55,52 @@ public class World : MonoBehaviour
         StartCoroutine(BuildWorld());
     }
 
+    public void SetBuildType(int type)
+    {
+        buildType = (TypeUtility.BlockType)type;
+    }
+
+    // Dig or Place block
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)) // 0 -> left, 1 ->right
+        {
+            RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out hit, 10))
+            {
+                Vector3 hitBlock = Vector3.zero;
+                if (Input.GetMouseButtonDown(0))
+                {
+                    hitBlock = hit.point - hit.normal / 2.0f;
+                }
+                else
+                {
+                    hitBlock = hit.point + hit.normal / 2.0f;
+                }
+
+                Chunk thisChunk = hit.collider.gameObject.GetComponent<Chunk>();
+                int bx = (int)(Mathf.Round(hitBlock.x) - thisChunk.location.x);
+                int by = (int)(Mathf.Round(hitBlock.y) - thisChunk.location.y);
+                int bz = (int)(Mathf.Round(hitBlock.z) - thisChunk.location.z);
+                int i = bx + chunkDimensions.x * (by + chunkDimensions.z * bz);
+
+                if (Input.GetMouseButtonDown(0))
+                {
+                    thisChunk.chunkData[i] = TypeUtility.BlockType.AIR;
+                }
+                else
+                {
+                    thisChunk.chunkData[i] = buildType;
+                }
+                DestroyImmediate(thisChunk.GetComponent<MeshFilter>());
+                DestroyImmediate(thisChunk.GetComponent<MeshRenderer>());
+                DestroyImmediate(thisChunk.GetComponent<Collider>());
+                thisChunk.CreateChunk(chunkDimensions, thisChunk.location, false);
+            }
+        }
+    }
+
     IEnumerator BuildCoordinator()
     {
         while (true)
@@ -63,7 +113,7 @@ public class World : MonoBehaviour
         }
     }
 
-    public void BuildChunkColumn(int x, int z)
+    public void BuildChunkColumn(int x, int z, bool meshEnabled = true)
     {
         for (int y = 0; y < worldDimensions.y; y++)
         {
@@ -78,10 +128,7 @@ public class World : MonoBehaviour
                 chunkChecker.Add(position);
                 chunks.Add(position, c);
             }
-            else
-            {
-                chunks[position].meshRender.enabled = true;
-            }
+            chunks[position].meshRender.enabled = meshEnabled;
             chunkColumn.Add(new Vector2Int(x, z));
         }
     }
@@ -137,7 +184,8 @@ public class World : MonoBehaviour
 
         lastBuildPosition = Vector3Int.CeilToInt(fpc.transform.position);
         StartCoroutine(BuildCoordinator());
-        StartCoroutine(UpdateWorld());
+        //StartCoroutine(UpdateWorld());
+        StartCoroutine(BuildExtraWorld());
     }
 
     IEnumerator BuildRecursiveWorld(int x, int z, int radius)
@@ -162,7 +210,33 @@ public class World : MonoBehaviour
         yield return null;
     }
 
-    private WaitForSeconds wfs = new WaitForSeconds(0.5f);
+    IEnumerator BuildExtraWorld()
+    {
+        int zEnd = worldDimensions.z + extraWorldDimensions.z;
+        int zStart = worldDimensions.z;
+
+        int xEnd = worldDimensions.x + extraWorldDimensions.x;
+        int xStart = worldDimensions.x;
+
+        for (int z = zStart; z < zEnd; z++)
+        {
+            for (int x = 0; x < xEnd; x++)
+            {
+                BuildChunkColumn(x * chunkDimensions.x, z * chunkDimensions.z, false);
+                yield return null;
+            }
+        }
+
+        for (int z = 0; z < zEnd; z++)
+        {
+            for (int x = xStart; x <xEnd; x++)
+            {
+                BuildChunkColumn(x * chunkDimensions.x, z * chunkDimensions.z, false);
+                yield return null;
+            }
+        }
+    }
+
     IEnumerator UpdateWorld()
     {
         while (true)
