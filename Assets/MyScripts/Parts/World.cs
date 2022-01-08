@@ -255,7 +255,7 @@ public class World : MonoBehaviour
 
         lastBuildPosition = Vector3Int.CeilToInt(fpc.transform.position);
         StartCoroutine(BuildCoordinator());
-        //StartCoroutine(UpdateWorld());
+        StartCoroutine(UpdateWorld());
         StartCoroutine(BuildExtraWorld());
     }
 
@@ -350,6 +350,8 @@ public class World : MonoBehaviour
         }
 
         int index = 0;
+        int vIndex = 0;
+        loadingBar.maxValue = chunkChecker.Count;
         foreach (Vector3Int chunkPos in chunkChecker)
         {
             GameObject chunk = Instantiate(chunkPrefab);
@@ -368,7 +370,10 @@ public class World : MonoBehaviour
 
             c.CreateChunk(chunkDimensions, chunkPos, false);
             chunks.Add(chunkPos, c);
+            loadingBar.value++;
             ReDrawChunk(c);
+            c.meshRender.enabled = wd.chunkVisibility[vIndex];
+            vIndex++;
             yield return null;
         }
 
@@ -376,5 +381,8 @@ public class World : MonoBehaviour
         mCamera.SetActive(false);
         fpc.SetActive(true);
         lastBuildPosition = Vector3Int.CeilToInt(fpc.transform.position);
+        loadingBar.gameObject.SetActive(false);
+        StartCoroutine(BuildCoordinator());
+        StartCoroutine(UpdateWorld());
     }
 }

@@ -14,6 +14,7 @@ public class WorldData
     public int[] chunkCheckerValues;
     public int[] chunkColumnValues;
     public int[] allChunkData;
+    public bool[] chunkVisibility;
 
     public int fpcX;
     public int fpcY;
@@ -43,7 +44,9 @@ public class WorldData
         }
 
         allChunkData = new int[chks.Count * World.chunkDimensions.x * World.chunkDimensions.y * World.chunkDimensions.z];
+        chunkVisibility = new bool[chks.Count];
         index = 0;
+        int vIndex = 0;
         foreach (var ch in chks)
         {
             foreach (TypeUtility.BlockType bt in ch.Value.chunkData)
@@ -51,6 +54,9 @@ public class WorldData
                 allChunkData[index] = (int) bt;
                 index++;
             }
+
+            chunkVisibility[vIndex] = ch.Value.meshRender.enabled;
+            vIndex++;
         }
 
         fpcX = (int) fpc.x;
