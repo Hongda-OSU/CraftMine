@@ -31,6 +31,9 @@ public class World : MonoBehaviour
     public static NoiseUtility.PerlinSetting caveSetting;
     public Perlin3DGrapher cave;
 
+    public static NoiseUtility.PerlinSetting treeSetting;
+    public Perlin3DGrapher tree;
+
     // Build world base on player position
     public HashSet<Vector3Int> chunkChecker = new HashSet<Vector3Int>(); // saving
     public HashSet<Vector2Int> chunkColumn = new HashSet<Vector2Int>(); // saving
@@ -57,6 +60,8 @@ public class World : MonoBehaviour
             diamondBottom.probability);
         caveSetting = new NoiseUtility.PerlinSetting(cave.heightScale, cave.scale, cave.octaves, cave.heightOffset,
             cave.DrawCutOff);
+        treeSetting = new NoiseUtility.PerlinSetting(tree.heightScale, tree.scale, tree.octaves, tree.heightOffset,
+            tree.DrawCutOff);
 
         if (loadFromFile)
             StartCoroutine(LoadWorldFromFile());
@@ -69,13 +74,13 @@ public class World : MonoBehaviour
         buildType = (TypeUtility.BlockType)type;
     }
 
-    public Vector3Int FromFlat(int i)
+    public static Vector3Int FromFlat(int i)
     {
         return new Vector3Int(i % chunkDimensions.x, (i / chunkDimensions.x) % chunkDimensions.y,
             i / (chunkDimensions.x * chunkDimensions.y));
     }
 
-    public int ToFlat(Vector3Int v)
+    public static int ToFlat(Vector3Int v)
     {
         return v.x + chunkDimensions.x * (v.y + chunkDimensions.z * v.z);
     }
@@ -260,9 +265,9 @@ public class World : MonoBehaviour
         yield return null;
     }
 
-    IEnumerator Drop(Chunk c, int blockIndex)
+    IEnumerator Drop(Chunk c, int blockIndex, int strength = 3)
     {
-        if (c.chunkData[blockIndex] != TypeUtility.BlockType.SAND) // sand for now
+        if (!TypeUtility.canDrop.Contains(c.chunkData[blockIndex])) // sand for now
             yield break;
 
         yield return dropDelay;
@@ -274,9 +279,9 @@ public class World : MonoBehaviour
             Vector3Int block = neighborBlock.Item1;
             int neighborBlockIndex = ToFlat(block);
             Chunk neightborChunk = chunks[neighborBlock.Item2];
-            if (neightborChunk.chunkData[neighborBlockIndex] == TypeUtility.BlockType.AIR)
+            if (neightborChunk != null && neightborChunk.chunkData[neighborBlockIndex] == TypeUtility.BlockType.AIR)
             {
-                neightborChunk.chunkData[neighborBlockIndex] = TypeUtility.BlockType.SAND;
+                neightborChunk.chunkData[neighborBlockIndex] = c.chunkData[blockIndex];
                 neightborChunk.healthData[neighborBlockIndex] = TypeUtility.BlockType.NOCRACK;
                 c.chunkData[blockIndex] = TypeUtility.BlockType.AIR;
                 var nBlockAbove = GetWorldNeighbor(new Vector3Int(thisBlock.x, thisBlock.y + 1, thisBlock.z),
@@ -285,6 +290,7 @@ public class World : MonoBehaviour
                 int nBlockAboveIndex = ToFlat(blockAbove);
                 Chunk nChunkAbove = chunks[nBlockAbove.Item2];
                 c.chunkData[blockIndex] = TypeUtility.BlockType.AIR;
+                c.healthData[blockIndex] = TypeUtility.BlockType.NOCRACK;
                 StartCoroutine(Drop(nChunkAbove, nBlockAboveIndex));
                 yield return dropDelay;
                 ReDrawChunk(c);
@@ -295,10 +301,38 @@ public class World : MonoBehaviour
                 c = neightborChunk;
                 blockIndex = neighborBlockIndex;
             }
+            else if (TypeUtility.canFlow.Contains(c.chunkData[blockIndex]))
+            {
+                FlowIntoNeighbor(thisBlock, Vector3Int.CeilToInt(c.location), new Vector3Int(1,0,0), strength-1);
+                FlowIntoNeighbor(thisBlock, Vector3Int.CeilToInt(c.location), new Vector3Int(-1, 0, 0), strength - 1);
+                FlowIntoNeighbor(thisBlock, Vector3Int.CeilToInt(c.location), new Vector3Int(0, 0, 1), strength - 1);
+                FlowIntoNeighbor(thisBlock, Vector3Int.CeilToInt(c.location), new Vector3Int(0, 0, -1), strength - 1);
+                yield break;
+            }
             else
             {
                 yield break;
             }
+        }
+    }
+
+    public void FlowIntoNeighbor(Vector3Int blockPosition, Vector3Int chunkPosition, Vector3Int neighborDirection,
+        int strength)
+    {
+        strength--;
+        if (strength <= 0) return;
+        Vector3Int neighborPosition = blockPosition + neighborDirection;
+        var neighborBlock = GetWorldNeighbor(neighborPosition, chunkPosition);
+        Vector3Int block = neighborBlock.Item1;
+        int neighborBlockIndex = ToFlat(block);
+        Chunk neighborChunk = chunks[neighborBlock.Item2];
+        if (neighborChunk == null) return;
+        if (neighborChunk.chunkData[neighborBlockIndex] == TypeUtility.BlockType.AIR)
+        {
+            neighborChunk.chunkData[neighborBlockIndex] = chunks[chunkPosition].chunkData[ToFlat(blockPosition)];
+            neighborChunk.healthData[neighborBlockIndex] = TypeUtility.BlockType.NOCRACK;
+            ReDrawChunk(neighborChunk);
+            StartCoroutine(Drop(neighborChunk, neighborBlockIndex, strength--));
         }
     }
 

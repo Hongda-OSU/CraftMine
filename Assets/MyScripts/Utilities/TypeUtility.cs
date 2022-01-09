@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class TypeUtility
@@ -6,14 +7,24 @@ public static class TypeUtility
     public enum BlockSide { BOTTOM, TOP, LEFT, RIGHT, FRONT, BACK }
     public enum BlockType
     {
-        GRASSTOP, GRASSSIDE, DIRT, WATER, LAVA, STONE, SAND, GOLD, GOLDBLOCK, BEDROCK, REDSTONE, DIAMOND, DIAMONDBLOCK, NOCRACK,
+        GRASSTOP, GRASSSIDE, DIRT, WATER, LAVA, STONE, SAND, GOLD, GOLDBLOCK, BEDROCK, REDSTONE, DIAMOND, DIAMONDBLOCK, LEAVES, WOOD, WOODBASE, NOCRACK,
         CRACK1, CRACK2, CRACK3, CRACK4, AIR
     } //AIR must be the last one
 
     public static int[] blockTypeHealth =
     {
-        2, 2, 1, 1, 1, 3, 1, 3, 4, -1, 3, 3, 4, -1, -1, -1, -1, -1, -1
+        2, 2, 1, 1, 1, 3, 1, 3, 4, -1, 3, 3, 4, 1, 3, 3, -1, -1, -1, -1, -1, -1
     }; // -1 -> not breakable
+
+    public static HashSet<BlockType> canDrop = new HashSet<BlockType>
+    {
+        BlockType.SAND, BlockType.WATER, BlockType.LAVA
+    };
+
+    public static HashSet<BlockType> canFlow = new HashSet<BlockType>
+    {
+        BlockType.WATER, BlockType.LAVA
+    };
 
     // (0,0)->left down, (0,1)->right down, (1,0)->up left, (1,1)->up right
     public static Vector2[,] blockUVs =
@@ -82,6 +93,21 @@ public static class TypeUtility
         {
             new Vector2(8, 14) * spriteUnit, new Vector2(9, 14) * spriteUnit,
             new Vector2(8, 15) * spriteUnit, new Vector2(9, 15) * spriteUnit
+        },
+        /*LEAVES*/		
+        {
+            new Vector2(1, 6) * spriteUnit, new Vector2(2, 6) * spriteUnit,
+            new Vector2(1, 7) * spriteUnit, new Vector2(2, 7) * spriteUnit
+        },
+        /*WOOD*/		
+        {
+            new Vector2(4, 14) * spriteUnit, new Vector2(5, 14) * spriteUnit,
+            new Vector2(4, 15) * spriteUnit, new Vector2(5, 15) * spriteUnit
+        },
+        /*WOODBASE*/		
+        {
+            new Vector2(5, 14) * spriteUnit, new Vector2(6, 14) * spriteUnit,
+            new Vector2(5, 15) * spriteUnit, new Vector2(6, 15) * spriteUnit
         },
         /*NOCRACK*/		
         {

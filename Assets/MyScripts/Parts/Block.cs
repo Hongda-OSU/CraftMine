@@ -19,30 +19,68 @@ public class Block
         if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y - 1, (int) blockLocalPos.z))
         {
             if (bType == TypeUtility.BlockType.GRASSSIDE)
-                quads.Add(new Quad(TypeUtility.BlockSide.TOP, position, TypeUtility.BlockType.DIRT, hType));
+            {
+                quads.Add(new Quad(TypeUtility.BlockSide.BOTTOM, position, TypeUtility.BlockType.DIRT, hType));
+            }
+            else if (bType == TypeUtility.BlockType.WOOD)
+            {
+                quads.Add(new Quad(TypeUtility.BlockSide.BOTTOM, position, TypeUtility.BlockType.WOODBASE, hType));
+            }
             else
+            {
                 quads.Add(new Quad(TypeUtility.BlockSide.BOTTOM, position, bType, hType));
+            }
         }
 
         if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y + 1, (int) blockLocalPos.z))
         {
             if (bType == TypeUtility.BlockType.GRASSSIDE)
+            {
                 quads.Add(new Quad(TypeUtility.BlockSide.TOP, position, TypeUtility.BlockType.GRASSTOP, hType));
+            }
+            else if (bType == TypeUtility.BlockType.WOOD)
+            {
+                quads.Add(new Quad(TypeUtility.BlockSide.TOP, position, TypeUtility.BlockType.WOODBASE, hType));
+            }
             else
+            {
                 quads.Add(new Quad(TypeUtility.BlockSide.TOP, position, bType, hType));
+            }
         }
-        
-        if (!hasSolidNeighbor((int)blockLocalPos.x - 1, (int)blockLocalPos.y, (int)blockLocalPos.z))
-            quads.Add(new Quad(TypeUtility.BlockSide.LEFT, position, bType, hType));
-        
-        if (!hasSolidNeighbor((int)blockLocalPos.x + 1, (int)blockLocalPos.y, (int)blockLocalPos.z))
-            quads.Add(new Quad(TypeUtility.BlockSide.RIGHT, position, bType, hType));
 
-        if (!hasSolidNeighbor((int)blockLocalPos.x, (int)blockLocalPos.y, (int)blockLocalPos.z + 1))
-            quads.Add(new Quad(TypeUtility.BlockSide.FRONT, position, bType, hType));
+        if (!hasSolidNeighbor((int) blockLocalPos.x - 1, (int) blockLocalPos.y, (int) blockLocalPos.z))
+        {
+            if (bType == TypeUtility.BlockType.WOODBASE)
+                quads.Add(new Quad(TypeUtility.BlockSide.LEFT, position, TypeUtility.BlockType.WOOD, hType));
+            else
+                quads.Add(new Quad(TypeUtility.BlockSide.LEFT, position, bType, hType));
+        }
 
-        if (!hasSolidNeighbor((int)blockLocalPos.x, (int)blockLocalPos.y, (int)blockLocalPos.z - 1))
-            quads.Add(new Quad(TypeUtility.BlockSide.BACK, position, bType, hType));
+        if (!hasSolidNeighbor((int) blockLocalPos.x + 1, (int) blockLocalPos.y, (int) blockLocalPos.z))
+        {
+            if (bType == TypeUtility.BlockType.WOODBASE)
+                quads.Add(new Quad(TypeUtility.BlockSide.RIGHT, position, TypeUtility.BlockType.WOOD, hType));
+            else
+                quads.Add(new Quad(TypeUtility.BlockSide.RIGHT, position, bType, hType));
+        }
+
+        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y, (int) blockLocalPos.z + 1))
+        {
+            if (bType == TypeUtility.BlockType.WOODBASE)
+                quads.Add(new Quad(TypeUtility.BlockSide.FRONT, position, TypeUtility.BlockType.WOOD, hType));
+            else
+                quads.Add(new Quad(TypeUtility.BlockSide.FRONT, position, bType, hType));
+        }
+
+
+        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y, (int) blockLocalPos.z - 1))
+        {
+            if (bType == TypeUtility.BlockType.WOODBASE)
+                quads.Add(new Quad(TypeUtility.BlockSide.BACK, position, TypeUtility.BlockType.WOOD, hType));
+            else
+                quads.Add(new Quad(TypeUtility.BlockSide.BACK, position, bType, hType));
+        }
+           
 
         if(quads.Count == 0) return;
 

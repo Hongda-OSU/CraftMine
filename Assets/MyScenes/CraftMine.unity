@@ -3002,6 +3002,7 @@ MonoBehaviour:
   diamondTop: {fileID: 2071267687}
   diamondBottom: {fileID: 1162900474}
   cave: {fileID: 3417423438565793382, guid: aad2b8fa9c391774bb861aee46fdee3d, type: 3}
+  tree: {fileID: 3417423438565793382, guid: cb18a8b12c74d074ba692ef3927d32b7, type: 3}
   drawRadius: 3
   buildType: 2
 --- !u!4 &1858919113

@@ -57,6 +57,9 @@ public class Chunk : MonoBehaviour
             int digCave = (int)NoiseUtility.FBM(x, y, z, World.caveSetting.octaves, World.caveSetting.scale,
                 World.caveSetting.heightScale, World.caveSetting.heightOffset);
 
+            int plantTree = (int)NoiseUtility.FBM(x, y, z, World.treeSetting.octaves, World.treeSetting.scale,
+                World.treeSetting.heightScale, World.treeSetting.heightOffset);
+
             hData[i] = TypeUtility.BlockType.NOCRACK;
 
             // bedrock creation
@@ -75,7 +78,10 @@ public class Chunk : MonoBehaviour
 
             if (surfaceHeight == y)
             {
-                cData[i] = TypeUtility.BlockType.GRASSSIDE;
+                if (plantTree < World.treeSetting.probability && random.NextFloat(1) <= 0.1f) // tree
+                    cData[i] = TypeUtility.BlockType.WOODBASE;
+                else
+                    cData[i] = TypeUtility.BlockType.GRASSSIDE;
             }
             else if (diamondTHeight > y && diamondBHeight < y && random.NextFloat(1) <= World.diamondTSetting.probability)
             {
@@ -126,6 +132,61 @@ public class Chunk : MonoBehaviour
         blockTypes.Dispose();
         healthTypes.Dispose();
         RandomArray.Dispose();
+
+        BuildTree();
+    }
+
+    public (Vector3Int, TypeUtility.BlockType)[] treeDesign = new (Vector3Int, TypeUtility.BlockType)[]
+    {
+        (new Vector3Int(0,1,-1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(1,1,-1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(-1,2,-1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,2,-1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,3,-1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,4,-1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(1,4,-1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,0,0), TypeUtility.BlockType.WOOD),
+        (new Vector3Int(-1,1,0), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,1,0), TypeUtility.BlockType.WOOD),
+        (new Vector3Int(1,1,0), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(-1,2,0), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,2,0), TypeUtility.BlockType.WOOD),
+        (new Vector3Int(1,2,0), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(-1,3,0), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,3,0), TypeUtility.BlockType.WOOD),
+        (new Vector3Int(1,3,0), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(-1,4,0), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,4,0), TypeUtility.BlockType.WOOD),
+        (new Vector3Int(1,4,0), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,5,0), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,1,1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(1,1,1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(-1,2,1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,2,1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,3,1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(1,3,1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(-1,4,1), TypeUtility.BlockType.LEAVES),
+        (new Vector3Int(0,4,1), TypeUtility.BlockType.LEAVES),
+    };
+
+    public void BuildTree()
+    {
+        for (int i = 0; i < chunkData.Length; i++)
+        {
+            if (chunkData[i] == TypeUtility.BlockType.WOODBASE)
+            {
+                foreach ((Vector3Int, TypeUtility.BlockType) v in treeDesign)
+                {
+                    Vector3Int blockPos = World.FromFlat(i) + v.Item1;
+                    int bIndex = World.ToFlat(blockPos);
+                    if (bIndex >= 0 && bIndex < chunkData.Length)
+                    {
+                        chunkData[bIndex] = v.Item2;
+                        healthData[bIndex] = TypeUtility.BlockType.NOCRACK;
+                    }
+                }
+            }
+        }
     }
 
     public void CreateChunk(Vector3 dimension, Vector3 position, bool rebuildBlocks = true)
