@@ -16,7 +16,7 @@ public class Block
         List<Quad> quads = new List<Quad>();
 
         // Grass have different top and bottom
-        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y - 1, (int) blockLocalPos.z))
+        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y - 1, (int) blockLocalPos.z, bType))
         {
             if (bType == TypeUtility.BlockType.GRASSSIDE)
             {
@@ -32,7 +32,7 @@ public class Block
             }
         }
 
-        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y + 1, (int) blockLocalPos.z))
+        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y + 1, (int) blockLocalPos.z, bType))
         {
             if (bType == TypeUtility.BlockType.GRASSSIDE)
             {
@@ -48,7 +48,7 @@ public class Block
             }
         }
 
-        if (!hasSolidNeighbor((int) blockLocalPos.x - 1, (int) blockLocalPos.y, (int) blockLocalPos.z))
+        if (!hasSolidNeighbor((int) blockLocalPos.x - 1, (int) blockLocalPos.y, (int) blockLocalPos.z, bType))
         {
             if (bType == TypeUtility.BlockType.WOODBASE)
                 quads.Add(new Quad(TypeUtility.BlockSide.LEFT, position, TypeUtility.BlockType.WOOD, hType));
@@ -56,7 +56,7 @@ public class Block
                 quads.Add(new Quad(TypeUtility.BlockSide.LEFT, position, bType, hType));
         }
 
-        if (!hasSolidNeighbor((int) blockLocalPos.x + 1, (int) blockLocalPos.y, (int) blockLocalPos.z))
+        if (!hasSolidNeighbor((int) blockLocalPos.x + 1, (int) blockLocalPos.y, (int) blockLocalPos.z, bType))
         {
             if (bType == TypeUtility.BlockType.WOODBASE)
                 quads.Add(new Quad(TypeUtility.BlockSide.RIGHT, position, TypeUtility.BlockType.WOOD, hType));
@@ -64,7 +64,7 @@ public class Block
                 quads.Add(new Quad(TypeUtility.BlockSide.RIGHT, position, bType, hType));
         }
 
-        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y, (int) blockLocalPos.z + 1))
+        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y, (int) blockLocalPos.z + 1, bType))
         {
             if (bType == TypeUtility.BlockType.WOODBASE)
                 quads.Add(new Quad(TypeUtility.BlockSide.FRONT, position, TypeUtility.BlockType.WOOD, hType));
@@ -73,7 +73,7 @@ public class Block
         }
 
 
-        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y, (int) blockLocalPos.z - 1))
+        if (!hasSolidNeighbor((int) blockLocalPos.x, (int) blockLocalPos.y, (int) blockLocalPos.z - 1, bType))
         {
             if (bType == TypeUtility.BlockType.WOODBASE)
                 quads.Add(new Quad(TypeUtility.BlockSide.BACK, position, TypeUtility.BlockType.WOOD, hType));
@@ -96,13 +96,18 @@ public class Block
         mesh.name = "Cube_" + position.x + "_" + position.y + "_" + position.z;
     }
 
-    public bool hasSolidNeighbor(int x, int y, int z)
+    public bool hasSolidNeighbor(int x, int y, int z, TypeUtility.BlockType type)
     {
         if (x < 0 || x >= parentChunk.width ||
             y < 0 || y >= parentChunk.height ||
             z < 0 || z >= parentChunk.depth)
         {
             return false;
+        }
+
+        if (parentChunk.chunkData[x + parentChunk.width * (y + parentChunk.depth * z)] == type)
+        {
+            return true;
         }
        
         if (parentChunk.chunkData[x + parentChunk.width * (y + parentChunk.depth * z)] == TypeUtility.BlockType.AIR ||

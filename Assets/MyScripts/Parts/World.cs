@@ -34,6 +34,9 @@ public class World : MonoBehaviour
     public static NoiseUtility.PerlinSetting treeSetting;
     public Perlin3DGrapher tree;
 
+    public static NoiseUtility.PerlinSetting biomeSetting;
+    public Perlin3DGrapher biome;
+
     // Build world base on player position
     public HashSet<Vector3Int> chunkChecker = new HashSet<Vector3Int>(); // saving
     public HashSet<Vector2Int> chunkColumn = new HashSet<Vector2Int>(); // saving
@@ -62,6 +65,8 @@ public class World : MonoBehaviour
             cave.DrawCutOff);
         treeSetting = new NoiseUtility.PerlinSetting(tree.heightScale, tree.scale, tree.octaves, tree.heightOffset,
             tree.DrawCutOff);
+        biomeSetting = new NoiseUtility.PerlinSetting(biome.heightScale, biome.scale, biome.octaves, biome.heightOffset,
+            biome.DrawCutOff);
 
         if (loadFromFile)
             StartCoroutine(LoadWorldFromFile());
@@ -140,7 +145,8 @@ public class World : MonoBehaviour
         {
             RaycastHit hit;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit, 10))
+            int bitMask = ~(1 << 8);
+            if (Physics.Raycast(ray, out hit, 10, bitMask))
             {
                 Vector3 hitBlock = Vector3.zero;
                 if (Input.GetMouseButtonDown(0))
@@ -148,7 +154,7 @@ public class World : MonoBehaviour
                 else
                     hitBlock = hit.point + hit.normal / 2.0f;
 
-                Chunk thisChunk = hit.collider.gameObject.GetComponent<Chunk>();
+                Chunk thisChunk = hit.collider.gameObject.transform.parent.GetComponent<Chunk>();
                 int bx = (int)(Mathf.Round(hitBlock.x) - thisChunk.location.x);
                 int by = (int)(Mathf.Round(hitBlock.y) - thisChunk.location.y);
                 int bz = (int)(Mathf.Round(hitBlock.z) - thisChunk.location.z);
@@ -235,9 +241,10 @@ public class World : MonoBehaviour
                 chunkChecker.Add(position);
                 chunks.Add(position, c);
             }
-            chunks[position].meshRender.enabled = meshEnabled;
-            chunkColumn.Add(new Vector2Int(x, z));
+            chunks[position].meshRenderSolid.enabled = meshEnabled;
+            chunks[position].meshRenderFluid.enabled = meshEnabled;
         }
+        chunkColumn.Add(new Vector2Int(x, z));
     }
 
     public void HideChunkColumn(int x, int z)
@@ -247,7 +254,8 @@ public class World : MonoBehaviour
             Vector3Int position = new Vector3Int(x, y * chunkDimensions.y, z);
             if (chunkChecker.Contains(position))
             {
-                chunks[position].meshRender.enabled = false;
+                chunks[position].meshRenderSolid.enabled = false;
+                chunks[position].meshRenderFluid.enabled = false;
             }
         }
     }
@@ -355,7 +363,7 @@ public class World : MonoBehaviour
         int xpos = worldDimensions.x * chunkDimensions.x / 2;
         int zpos = worldDimensions.z * chunkDimensions.z / 2;
         int ypos = (int)NoiseUtility.FBM(xpos, zpos, stoneSetting.octaves, stoneSetting.scale, 
-            stoneSetting.heightScale, stoneSetting.heightOffset) + 20;
+            stoneSetting.heightScale, stoneSetting.heightOffset) + 50;
         fpc.transform.position = new Vector3Int(xpos, ypos, zpos);
         loadingBar.gameObject.SetActive(false);
         fpc.SetActive(true);
@@ -479,7 +487,8 @@ public class World : MonoBehaviour
             chunks.Add(chunkPos, c);
             loadingBar.value++;
             ReDrawChunk(c);
-            c.meshRender.enabled = wd.chunkVisibility[vIndex];
+            c.meshRenderSolid.enabled = wd.chunkVisibility[vIndex];
+            c.meshRenderFluid.enabled = wd.chunkVisibility[vIndex];
             vIndex++;
             yield return null;
         }

@@ -55,7 +55,7 @@ public class WorldData
                 index++;
             }
 
-            chunkVisibility[vIndex] = ch.Value.meshRender.enabled;
+            chunkVisibility[vIndex] = ch.Value.meshRenderSolid.enabled;
             vIndex++;
         }
 

@@ -9,7 +9,8 @@ using Random = Unity.Mathematics.Random;
 
 public class Chunk : MonoBehaviour
 {
-    public Material material; 
+    public Material material;
+    public Material fluid;
     public int width, height, depth;
     public Block[,,] blocks;
     // (flatten array) Flat[x + WIDTH * (y + DEPTH * z)] = Original[x,y,z] 
@@ -19,7 +20,10 @@ public class Chunk : MonoBehaviour
     public TypeUtility.BlockType[] chunkData;
     public TypeUtility.BlockType[] healthData;
     public Vector3 location;
-    public MeshRenderer meshRender;
+    public MeshRenderer meshRenderSolid;
+    public MeshRenderer meshRenderFluid;
+    public GameObject solidMesh;
+    public GameObject fluidMesh;
 
     private CalculateBlockTypes calculateBlockTypes;
     private JobHandle jobHandle;
@@ -60,6 +64,9 @@ public class Chunk : MonoBehaviour
             int plantTree = (int)NoiseUtility.FBM(x, y, z, World.treeSetting.octaves, World.treeSetting.scale,
                 World.treeSetting.heightScale, World.treeSetting.heightOffset);
 
+            int dessertBiome = (int)NoiseUtility.FBM(x, y, z, World.biomeSetting.octaves, World.biomeSetting.scale,
+                World.biomeSetting.heightScale, World.biomeSetting.heightOffset);
+
             hData[i] = TypeUtility.BlockType.NOCRACK;
 
             // bedrock creation
@@ -76,12 +83,24 @@ public class Chunk : MonoBehaviour
                 return;
             }
 
-            if (surfaceHeight == y)
+            if (surfaceHeight == y && y >= 20)
             {
-                if (plantTree < World.treeSetting.probability && random.NextFloat(1) <= 0.1f) // tree
+                if (dessertBiome < World.biomeSetting.probability)
+                {
+                    cData[i] = TypeUtility.BlockType.SAND;
+                    if (random.NextFloat(1) <= 0.1f)
+                    {
+                        cData[i] = TypeUtility.BlockType.WOODBASE;
+                    }
+                }
+                else if (plantTree < World.treeSetting.probability && random.NextFloat(1) <= 0.1f) // tree
+                {
                     cData[i] = TypeUtility.BlockType.WOODBASE;
+                }
                 else
+                {
                     cData[i] = TypeUtility.BlockType.GRASSSIDE;
+                }
             }
             else if (diamondTHeight > y && diamondBHeight < y && random.NextFloat(1) <= World.diamondTSetting.probability)
             {
@@ -94,6 +113,10 @@ public class Chunk : MonoBehaviour
             else if (surfaceHeight > y)
             {
                 cData[i] = TypeUtility.BlockType.DIRT;
+            }
+            else if (y < 20)
+            {
+                cData[i] = TypeUtility.BlockType.WATER;
             }
             else
             {
@@ -196,73 +219,123 @@ public class Chunk : MonoBehaviour
         height = (int) dimension.y;
         depth = (int) dimension.z;
 
-        MeshFilter mf = this.gameObject.AddComponent<MeshFilter>();
-        MeshRenderer mr = this.gameObject.AddComponent<MeshRenderer>();
-        meshRender = mr;
-        mr.material = material;
+        MeshFilter mfs; // solid
+        MeshRenderer mrs;
+
+        MeshFilter mff; // fluid
+        MeshRenderer mrf;
+        if (solidMesh == null)
+        {
+            solidMesh = new GameObject("Solid");
+            solidMesh.transform.parent = this.gameObject.transform;
+            mfs = solidMesh.AddComponent<MeshFilter>();
+            mrs = solidMesh.AddComponent<MeshRenderer>();
+            meshRenderSolid = mrs;
+            meshRenderSolid.material = material;
+        }
+        else
+        {
+            mfs = solidMesh.GetComponent<MeshFilter>();
+            DestroyImmediate(solidMesh.GetComponent<Collider>());
+        }
+
+        if (fluidMesh == null)
+        {
+            fluidMesh = new GameObject("Fluid");
+            fluidMesh.transform.parent = this.gameObject.transform;
+            fluidMesh.AddComponent<UVScroller>();
+            mff = fluidMesh.AddComponent<MeshFilter>();
+            mrf = fluidMesh.AddComponent<MeshRenderer>();
+            meshRenderFluid = mrf;
+            meshRenderFluid.material = fluid;
+        }
+        else
+        {
+            mff = fluidMesh.GetComponent<MeshFilter>();
+            DestroyImmediate(fluidMesh.GetComponent<Collider>());
+        }
+
         blocks = new Block[width, height, depth];
         if (rebuildBlocks) 
             BuildChunk();
 
-        List<Mesh> inputMeshes = new List<Mesh>();
-        int vertexStart = 0, triStart = 0, counter = 0;
-        int meshCount = width * height * depth;
-        var jobs = new ProcessMeshDataJob();
-        jobs.vertexStart = new NativeArray<int>(meshCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-        jobs.triStart = new NativeArray<int>(meshCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-        for (int z = 0; z < depth; z++)
+        for (int pass = 0; pass < 2; pass++)
         {
-            for (int y = 0; y < height; y++)
+            List<Mesh> inputMeshes = new List<Mesh>();
+            int vertexStart = 0, triStart = 0, counter = 0;
+            int meshCount = width * height * depth;
+            var jobs = new ProcessMeshDataJob();
+            jobs.vertexStart = new NativeArray<int>(meshCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            jobs.triStart = new NativeArray<int>(meshCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+
+            for (int z = 0; z < depth; z++)
             {
-                for (int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++)
                 {
-                    blocks[x, y, z] = new Block(new Vector3(x, y, z) + location, chunkData[x + width * (y + depth * z)],
-                        healthData[x + width * (y + depth * z)], this);
-                    if (blocks[x,y,z].mesh == null) continue;
-                    inputMeshes.Add(blocks[x, y, z].mesh);
-                    var vcount = blocks[x, y, z].mesh.vertexCount;
-                    var icount = (int)blocks[x, y, z].mesh.GetIndexCount(0);
-                    jobs.vertexStart[counter] = vertexStart;
-                    jobs.triStart[counter] = triStart;
-                    vertexStart += vcount;
-                    triStart += icount;
-                    counter++;
+                    for (int x = 0; x < width; x++)
+                    {
+                        blocks[x, y, z] = new Block(new Vector3(x, y, z) + location, chunkData[x + width * (y + depth * z)],
+                            healthData[x + width * (y + depth * z)], this);
+                        if (blocks[x, y, z].mesh != null && 
+                            ((pass == 0 && !TypeUtility.canFlow.Contains(chunkData[x + width * (y + depth * z)])) ||
+                             (pass == 1 && TypeUtility.canFlow.Contains(chunkData[x + width * (y + depth * z)]))))
+                        {
+                            inputMeshes.Add(blocks[x, y, z].mesh);
+                            var vcount = blocks[x, y, z].mesh.vertexCount;
+                            var icount = (int)blocks[x, y, z].mesh.GetIndexCount(0);
+                            jobs.vertexStart[counter] = vertexStart;
+                            jobs.triStart[counter] = triStart;
+                            vertexStart += vcount;
+                            triStart += icount;
+                            counter++;
+                        }
+                    }
                 }
             }
+
+            jobs.meshData = Mesh.AcquireReadOnlyMeshData(inputMeshes);
+            var outputMeshData = Mesh.AllocateWritableMeshData(1);
+            jobs.outputMesh = outputMeshData[0];
+            jobs.outputMesh.SetIndexBufferParams(triStart, IndexFormat.UInt32);
+            jobs.outputMesh.SetVertexBufferParams(vertexStart,
+                new VertexAttributeDescriptor(VertexAttribute.Position, stream: 0),
+                new VertexAttributeDescriptor(VertexAttribute.Normal, stream: 1),
+                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, stream: 2),
+                new VertexAttributeDescriptor(VertexAttribute.TexCoord1, stream: 3)); // second uv set
+
+            var handle = jobs.Schedule(inputMeshes.Count, 4);
+            var newMesh = new Mesh();
+            newMesh.name = "Chunk_" + location.x + "_" + location.y + "_" + location.z;
+            var subMesh = new SubMeshDescriptor(0, triStart, MeshTopology.Triangles);
+            subMesh.firstVertex = 0;
+            subMesh.vertexCount = vertexStart;
+
+            handle.Complete();
+
+            jobs.outputMesh.subMeshCount = 1;
+            jobs.outputMesh.SetSubMesh(0, subMesh);
+
+            Mesh.ApplyAndDisposeWritableMeshData(outputMeshData, new[] { newMesh });
+            jobs.meshData.Dispose();
+            jobs.vertexStart.Dispose();
+            jobs.triStart.Dispose();
+            newMesh.RecalculateBounds();
+
+            if (pass == 0)
+            {
+                mfs.mesh = newMesh;
+                MeshCollider collider = solidMesh.AddComponent<MeshCollider>();
+                collider.sharedMesh = mfs.mesh;
+            }
+            else
+            {
+                mff.mesh = newMesh;
+                MeshCollider collider = fluidMesh.AddComponent<MeshCollider>();
+                fluidMesh.layer = 4;
+                collider.sharedMesh = mff.mesh;
+            }
+            
         }
-
-        jobs.meshData = Mesh.AcquireReadOnlyMeshData(inputMeshes);
-        var outputMeshData = Mesh.AllocateWritableMeshData(1);
-        jobs.outputMesh = outputMeshData[0];
-        jobs.outputMesh.SetIndexBufferParams(triStart, IndexFormat.UInt32);
-        jobs.outputMesh.SetVertexBufferParams(vertexStart, 
-            new VertexAttributeDescriptor(VertexAttribute.Position, stream: 0), 
-            new VertexAttributeDescriptor(VertexAttribute.Normal, stream: 1),
-            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, stream: 2),
-            new VertexAttributeDescriptor(VertexAttribute.TexCoord1, stream: 3)); // second uv set
-
-        var handle = jobs.Schedule(inputMeshes.Count, 4);
-        var newMesh = new Mesh();
-        newMesh.name = "Chunk_" + location.x + "_" + location.y + "_" + location.z; 
-        var subMesh = new SubMeshDescriptor(0, triStart, MeshTopology.Triangles);
-        subMesh.firstVertex = 0;
-        subMesh.vertexCount = vertexStart;
-
-        handle.Complete();
-
-        jobs.outputMesh.subMeshCount = 1;
-        jobs.outputMesh.SetSubMesh(0, subMesh);
-
-        Mesh.ApplyAndDisposeWritableMeshData(outputMeshData, new[] {newMesh});
-        jobs.meshData.Dispose();
-        jobs.vertexStart.Dispose();
-        jobs.triStart.Dispose();
-        newMesh.RecalculateBounds();
-
-        mf.mesh = newMesh;
-        MeshCollider collider = this.gameObject.AddComponent<MeshCollider>();
-        collider.sharedMesh = mf.mesh;
     }
 
     [BurstCompile]
